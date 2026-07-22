@@ -77,15 +77,6 @@ const danmakuSpeedOptions = [
   { label: "极快", factor: 1.75 },
 ] as const;
 
-const growthOptions = [
-  { seconds: 0, label: "关闭自动增长" },
-  { seconds: 10, label: "每 10 秒 +1" },
-  { seconds: 5, label: "每 5 秒 +1" },
-  { seconds: 3, label: "每 3 秒 +1" },
-  { seconds: 2, label: "每 2 秒 +1" },
-  { seconds: 1, label: "每 1 秒 +1" },
-] as const;
-
 function CameraGlyph() {
   return (
     <span className="camera-glyph" aria-hidden="true">
@@ -202,6 +193,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    if (commentInterval === 0) return;
     let timeoutId: number;
 
     const queueNextComment = () => {
@@ -566,25 +558,33 @@ export default function Home() {
                         }}
                       />
                     </label>
-                    <label className="setting-field growth-setting-field">
-                      <span><b>直播间涨粉速度</b><small>模拟新观众进入直播间</small></span>
-                      <select value={growthInterval} onChange={(event) => setGrowthInterval(Number(event.target.value))}>
-                        {growthOptions.map((option) => (
-                          <option key={option.seconds} value={option.seconds}>{option.label}</option>
-                        ))}
-                      </select>
+                    <label className="speed-field growth-speed-field">
+                      <span><b>直播间涨粉速度</b><strong>{growthInterval === 0 ? "关闭" : `每 ${growthInterval} 秒 +1`}</strong></span>
+                      <input
+                        aria-label="直播间涨粉速度"
+                        aria-valuetext={growthInterval === 0 ? "关闭" : `每 ${growthInterval} 秒增加一人`}
+                        type="range"
+                        min="0"
+                        max="20"
+                        step="1"
+                        value={growthInterval}
+                        onChange={(event) => setGrowthInterval(Number(event.target.value))}
+                      />
+                      <span className="speed-scale"><small>0 秒（关闭）</small><small>20 秒</small></span>
                     </label>
                     <label className="speed-field">
-                      <span><b>评论出现速度</b><strong>约每 {commentInterval} 秒</strong></span>
+                      <span><b>评论出现速度</b><strong>{commentInterval === 0 ? "关闭" : `约每 ${commentInterval} 秒`}</strong></span>
                       <input
+                        aria-label="评论出现速度"
+                        aria-valuetext={commentInterval === 0 ? "关闭" : `约每 ${commentInterval} 秒一条`}
                         type="range"
-                        min="1"
-                        max="10"
+                        min="0"
+                        max="20"
                         step="1"
                         value={commentInterval}
                         onChange={(event) => setCommentInterval(Number(event.target.value))}
                       />
-                      <span className="speed-scale"><small>快</small><small>慢</small></span>
+                      <span className="speed-scale"><small>0 秒（关闭）</small><small>20 秒</small></span>
                     </label>
                   </div>
                 )}
