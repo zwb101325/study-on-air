@@ -21,6 +21,11 @@ type DanmakuStyle = CSSProperties & {
   "--duration": string;
 };
 
+type DanmakuLayerStyle = CSSProperties & {
+  "--danmaku-opacity": number;
+  "--danmaku-font-size": string;
+};
+
 const initialMessages: ChatMessage[] = [
   { id: 1, user: "柚子汽水", text: "晚上好！今天播什么呀？", color: "#8b72d7" },
   { id: 2, user: "bili_70241986", text: "前排坐好，等开播 ✨", color: "#5b8fd1" },
@@ -88,8 +93,19 @@ export default function Home() {
   const nextDanmakuId = useRef(1);
   const danmakuTimersRef = useRef<Set<number>>(new Set());
   const [isLive, setIsLive] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [micOn, setMicOn] = useState(true);
   const [mirrored, setMirrored] = useState(true);
+  const [volume, setVolume] = useState(0.65);
+  const [isMuted, setIsMuted] = useState(true);
+  const [volumeOpen, setVolumeOpen] = useState(false);
+  const [danmakuEnabled, setDanmakuEnabled] = useState(true);
+  const [danmakuSettingsOpen, setDanmakuSettingsOpen] = useState(false);
+  const [danmakuOpacity, setDanmakuOpacity] = useState(0.92);
+  const [danmakuFontSize, setDanmakuFontSize] = useState(13);
+  const [danmakuSpeed, setDanmakuSpeed] = useState(1);
+  const [isPictureInPicture, setIsPictureInPicture] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [roomTitle, setRoomTitle] = useState("晚风里，和你聊聊天");
@@ -107,7 +123,7 @@ export default function Home() {
 
   const showDanmaku = (message: ChatMessage) => {
     const barrageId = nextDanmakuId.current++;
-    const duration = 10 + (barrageId % 4);
+    const duration = (10 + (barrageId % 4)) / danmakuSpeed;
     const item: DanmakuItem = {
       ...message,
       barrageId,
@@ -138,6 +154,30 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.volume = volume;
+    video.muted = isMuted || volume === 0;
+  }, [volume, isMuted, isLive]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleEnterPictureInPicture = () => setIsPictureInPicture(true);
+    const handleLeavePictureInPicture = () => setIsPictureInPicture(false);
+    const handleFullscreenChange = () => setIsFullscreen(document.fullscreenElement === stageRef.current);
+    video.addEventListener("enterpictureinpicture", handleEnterPictureInPicture);
+    video.addEventListener("leavepictureinpicture", handleLeavePictureInPicture);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      video.removeEventListener("enterpictureinpicture", handleEnterPictureInPicture);
+      video.removeEventListener("leavepictureinpicture", handleLeavePictureInPicture);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  useEffect(() => {
     let timeoutId: number;
 
     const queueNextComment = () => {
@@ -161,7 +201,7 @@ export default function Home() {
 
     queueNextComment();
     return () => window.clearTimeout(timeoutId);
-  }, [commentInterval]);
+  }, [commentInterval, danmakuSpeed]);
 
   useEffect(() => {
     if (!settingsOpen) return;
@@ -209,19 +249,21 @@ export default function Home() {
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
     setIsLive(false);
+    setIsPlaying(false);
     setElapsed(0);
     setNotice("直播已暂停，随时可以再次开启");
   };
 
-  const startLive = async () => {
+  const connectCamera = async (resetElapsed: boolean) => {
     if (!navigator.mediaDevices?.getUserMedia) {
       setNotice("当前浏览器不支持摄像头，请使用最新版 Chrome、Edge 或 Safari");
       return;
     }
 
     setIsStarting(true);
-    setNotice("正在连接摄像头…");
+    setNotice(resetElapsed ? "正在连接摄像头…" : "正在刷新直播画面…");
     try {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
       let stream: MediaStream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({
@@ -244,9 +286,10 @@ export default function Home() {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
       }
-      setElapsed(0);
+      if (resetElapsed) setElapsed(0);
       setIsLive(true);
-      setNotice("摄像头已连接");
+      setIsPlaying(true);
+      setNotice(resetElapsed ? "摄像头已连接" : "直播画面已刷新");
     } catch (error) {
       const mediaError = error as DOMException;
       const permissionDenied = mediaError.name === "NotAllowedError" || mediaError.name === "SecurityError";
@@ -255,8 +298,58 @@ export default function Home() {
           ? "没有获得摄像头权限，请在浏览器地址栏中允许后重试"
           : "没有找到可用的摄像头，请检查设备连接后重试",
       );
+      setIsLive(false);
+      setIsPlaying(false);
     } finally {
       setIsStarting(false);
+    }
+  };
+
+  const startLive = () => connectCamera(true);
+
+  const refreshLive = () => connectCamera(false);
+
+  const togglePlayback = async () => {
+    const video = videoRef.current;
+    if (!video || !isLive) return;
+    if (video.paused) {
+      try {
+        await video.play();
+        setIsPlaying(true);
+        setNotice("直播画面已继续播放");
+      } catch {
+        setNotice("画面暂时无法继续播放，请点击刷新重试");
+      }
+    } else {
+      video.pause();
+      setIsPlaying(false);
+      setNotice("直播画面已暂停，直播计时仍在继续");
+    }
+  };
+
+  const toggleVolume = () => {
+    if (isMuted || volume === 0) {
+      if (volume === 0) setVolume(0.65);
+      setIsMuted(false);
+      setNotice("直播声音已开启，请注意避免麦克风回声");
+    } else {
+      setIsMuted(true);
+      setNotice("直播声音已静音");
+    }
+  };
+
+  const togglePictureInPicture = async () => {
+    const video = videoRef.current;
+    if (!video || !isLive) return;
+    try {
+      if (!document.pictureInPictureEnabled || video.disablePictureInPicture) {
+        setNotice("当前浏览器暂不支持小窗模式");
+        return;
+      }
+      if (document.pictureInPictureElement) await document.exitPictureInPicture();
+      else await video.requestPictureInPicture();
+    } catch {
+      setNotice("小窗模式开启失败，请稍后重试");
     }
   };
 
@@ -450,12 +543,21 @@ export default function Home() {
               ref={videoRef}
               className={mirrored ? "camera-feed mirrored" : "camera-feed"}
               autoPlay
-              muted
+              muted={isMuted || volume === 0}
               playsInline
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
               aria-label="摄像头实时画面"
             />
 
-            <div className="danmaku-layer" aria-hidden="true">
+            <div
+              className={danmakuEnabled ? "danmaku-layer" : "danmaku-layer hidden"}
+              style={{
+                "--danmaku-opacity": danmakuOpacity,
+                "--danmaku-font-size": `${danmakuFontSize}px`,
+              } as DanmakuLayerStyle}
+              aria-hidden="true"
+            >
               {danmakuItems.map((item) => (
                 <div
                   className="danmaku-item"
@@ -485,7 +587,7 @@ export default function Home() {
 
             {isLive && (
               <>
-                <div className="live-status"><span /> LIVE <b>{formatDuration(elapsed)}</b></div>
+                <div className="live-status"><span /> LIVE</div>
                 <div className="quality-badge">1080P · 实时</div>
                 <div className="stage-notice" aria-live="polite">{notice}</div>
               </>
@@ -493,17 +595,116 @@ export default function Home() {
 
             <div className={isLive ? "video-controls visible" : "video-controls"}>
               <div className="control-left">
-                <button className="round-control" onClick={toggleMic} disabled={!isLive} aria-label={micOn ? "关闭麦克风" : "打开麦克风"}>
-                  {micOn ? "🎙" : "⊘"}
+                <button className="control-button" onClick={togglePlayback} disabled={!isLive} aria-label={isPlaying ? "暂停播放" : "继续播放"} title={isPlaying ? "暂停" : "播放"}>
+                  <span className="control-symbol play-symbol" aria-hidden="true">{isPlaying ? "Ⅱ" : "▶"}</span>
                 </button>
-                <button className="round-control" onClick={() => setMirrored((value) => !value)} disabled={!isLive} aria-label="切换镜像">
-                  ↔
+                <button className="control-button" onClick={refreshLive} disabled={!isLive || isStarting} aria-label="刷新直播画面" title="刷新直播画面">
+                  <span className={isStarting ? "control-symbol refresh-symbol spinning" : "control-symbol refresh-symbol"} aria-hidden="true">↻</span>
                 </button>
-                <span className="control-label">{micOn ? "麦克风已开启" : "麦克风已静音"}</span>
+                <div className="control-popover-wrap">
+                  <button
+                    className={volumeOpen ? "control-button active" : "control-button"}
+                    onClick={() => setVolumeOpen((value) => !value)}
+                    disabled={!isLive}
+                    aria-label="调节音量"
+                    aria-expanded={volumeOpen}
+                    title="音量"
+                  >
+                    <span className="control-symbol volume-symbol" aria-hidden="true">{isMuted || volume === 0 ? "🔇" : volume < 0.45 ? "🔉" : "🔊"}</span>
+                  </button>
+                  {volumeOpen && (
+                    <div className="volume-popover">
+                      <button onClick={toggleVolume}>{isMuted || volume === 0 ? "取消静音" : "静音"}</button>
+                      <input
+                        aria-label="直播音量"
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        value={isMuted ? 0 : volume}
+                        onChange={(event) => {
+                          const nextVolume = Number(event.target.value);
+                          setVolume(nextVolume);
+                          setIsMuted(nextVolume === 0);
+                        }}
+                      />
+                      <span>{Math.round((isMuted ? 0 : volume) * 100)}%</span>
+                    </div>
+                  )}
+                </div>
+                <time className="live-duration" dateTime={`PT${elapsed}S`} title="直播持续时间">{formatDuration(elapsed)}</time>
               </div>
               <div className="control-right">
-                <button className="round-control" onClick={enterFullscreen} aria-label="全屏">⛶</button>
-                {isLive && <button className="end-button" onClick={stopLive}>结束直播</button>}
+                <button
+                  className={mirrored ? "control-button active" : "control-button"}
+                  onClick={() => setMirrored((value) => !value)}
+                  disabled={!isLive}
+                  aria-label={mirrored ? "关闭镜像模式" : "开启镜像模式"}
+                  aria-pressed={mirrored}
+                  title="镜像模式"
+                >
+                  <span className="control-symbol mirror-symbol" aria-hidden="true">◧</span>
+                </button>
+                <button
+                  className={isPictureInPicture ? "control-button active" : "control-button"}
+                  onClick={togglePictureInPicture}
+                  disabled={!isLive}
+                  aria-label={isPictureInPicture ? "退出小窗模式" : "开启小窗模式"}
+                  aria-pressed={isPictureInPicture}
+                  title="小窗模式"
+                >
+                  <span className="control-symbol pip-symbol" aria-hidden="true">▣</span>
+                </button>
+                <button
+                  className={danmakuEnabled ? "control-button active danmaku-toggle" : "control-button danmaku-toggle"}
+                  onClick={() => setDanmakuEnabled((value) => !value)}
+                  aria-label={danmakuEnabled ? "关闭弹幕" : "开启弹幕"}
+                  aria-pressed={danmakuEnabled}
+                  title={danmakuEnabled ? "关闭弹幕" : "开启弹幕"}
+                >
+                  <span className="control-symbol" aria-hidden="true">弹</span>
+                </button>
+                <div className="control-popover-wrap danmaku-settings-wrap">
+                  <button
+                    className={danmakuSettingsOpen ? "control-button active" : "control-button"}
+                    onClick={() => setDanmakuSettingsOpen((value) => !value)}
+                    aria-label="弹幕设置"
+                    aria-expanded={danmakuSettingsOpen}
+                    title="弹幕设置"
+                  >
+                    <span className="control-symbol settings-symbol" aria-hidden="true">⚙</span>
+                  </button>
+                  {danmakuSettingsOpen && (
+                    <div className="danmaku-settings-popover" role="dialog" aria-label="弹幕设置">
+                      <div className="control-panel-heading">
+                        <strong>弹幕设置</strong>
+                        <button onClick={() => { setDanmakuOpacity(0.92); setDanmakuFontSize(13); setDanmakuSpeed(1); }}>恢复默认</button>
+                      </div>
+                      <label>
+                        <span>不透明度 <b>{Math.round(danmakuOpacity * 100)}%</b></span>
+                        <input type="range" min="0.25" max="1" step="0.05" value={danmakuOpacity} onChange={(event) => setDanmakuOpacity(Number(event.target.value))} />
+                      </label>
+                      <label>
+                        <span>字号 <b>{danmakuFontSize}px</b></span>
+                        <input type="range" min="11" max="20" step="1" value={danmakuFontSize} onChange={(event) => setDanmakuFontSize(Number(event.target.value))} />
+                      </label>
+                      <label>
+                        <span>速度 <b>{danmakuSpeed.toFixed(1)}×</b></span>
+                        <input type="range" min="0.6" max="1.8" step="0.1" value={danmakuSpeed} onChange={(event) => setDanmakuSpeed(Number(event.target.value))} />
+                      </label>
+                    </div>
+                  )}
+                </div>
+                <button
+                  className={isFullscreen ? "control-button active" : "control-button"}
+                  onClick={enterFullscreen}
+                  aria-label={isFullscreen ? "退出全屏" : "进入全屏"}
+                  aria-pressed={isFullscreen}
+                  title="全屏模式"
+                >
+                  <span className="control-symbol fullscreen-symbol" aria-hidden="true">⛶</span>
+                </button>
+                {isLive && <button className="end-button compact" onClick={stopLive} title="结束直播">结束</button>}
               </div>
             </div>
           </div>
