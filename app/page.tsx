@@ -623,7 +623,7 @@ export default function Home() {
                     aria-expanded={volumeOpen}
                     data-tooltip="音量调节"
                   >
-                    <img className={isMuted || volume === 0 ? "control-icon volume-icon muted" : "control-icon volume-icon"} src="/icons/volume.svg" alt="" aria-hidden="true" />
+                    <img className="control-icon volume-icon" src={isMuted || volume === 0 ? "/icons/volume-muted.svg" : "/icons/volume.svg"} alt="" aria-hidden="true" />
                   </button>
                   {volumeOpen && (
                     <div className="volume-popover">
@@ -656,7 +656,7 @@ export default function Home() {
                   aria-pressed={mirrored}
                   data-tooltip={mirrored ? "关闭镜像" : "开启镜像"}
                 >
-                  <img className="control-icon" src="/icons/mirror.svg" alt="" aria-hidden="true" />
+                  <img className="control-icon" src={mirrored ? "/icons/mirror-exit.svg" : "/icons/mirror.svg"} alt="" aria-hidden="true" />
                 </button>
                 <button
                   className={isPictureInPicture ? "control-button active" : "control-button"}
@@ -666,7 +666,7 @@ export default function Home() {
                   aria-pressed={isPictureInPicture}
                   data-tooltip={isPictureInPicture ? "退出小窗" : "小窗模式"}
                 >
-                  <img className="control-icon" src="/icons/pip.svg" alt="" aria-hidden="true" />
+                  <img className="control-icon" src={isPictureInPicture ? "/icons/pip-exit.svg" : "/icons/pip.svg"} alt="" aria-hidden="true" />
                 </button>
                 <button
                   className={danmakuEnabled ? "control-button active danmaku-toggle" : "control-button danmaku-toggle"}
@@ -675,7 +675,7 @@ export default function Home() {
                   aria-pressed={danmakuEnabled}
                   data-tooltip={danmakuEnabled ? "关闭弹幕" : "开启弹幕"}
                 >
-                  <img className="control-icon" src="/icons/danmaku.svg" alt="" aria-hidden="true" />
+                  <img className="control-icon" src={danmakuEnabled ? "/icons/danmaku.svg" : "/icons/danmaku-on.svg"} alt="" aria-hidden="true" />
                 </button>
                 <div className="control-popover-wrap danmaku-settings-wrap">
                   <button
@@ -723,7 +723,7 @@ export default function Home() {
                   aria-pressed={isFullscreen}
                   data-tooltip={isFullscreen ? "退出全屏" : "全屏模式"}
                 >
-                  <img className="control-icon" src="/icons/fullscreen.svg" alt="" aria-hidden="true" />
+                  <img className="control-icon" src={isFullscreen ? "/icons/fullscreen-exit.svg" : "/icons/fullscreen.svg"} alt="" aria-hidden="true" />
                 </button>
                 {isLive && <button className="end-button compact" onClick={stopLive} title="结束直播">结束</button>}
               </div>
