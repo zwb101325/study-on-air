@@ -61,10 +61,15 @@ export default function Home() {
   const stageRef = useRef<HTMLDivElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
+  const settingsRef = useRef<HTMLDivElement>(null);
   const nextMessageId = useRef(20);
   const [isLive, setIsLive] = useState(false);
   const [micOn, setMicOn] = useState(true);
   const [mirrored, setMirrored] = useState(true);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [viewerCount, setViewerCount] = useState(1284);
+  const [commentInterval, setCommentInterval] = useState(3);
   const [elapsed, setElapsed] = useState(0);
   const [messages, setMessages] = useState(initialMessages);
   const [draft, setDraft] = useState("");
@@ -88,7 +93,7 @@ export default function Home() {
     let timeoutId: number;
 
     const queueNextComment = () => {
-      const delay = 1800 + Math.random() * 2600;
+      const delay = commentInterval * 1000 * (0.8 + Math.random() * 0.4);
       timeoutId = window.setTimeout(() => {
         const next = liveComments[Math.floor(Math.random() * liveComments.length)];
         setMessages((current) => [
@@ -101,7 +106,25 @@ export default function Home() {
 
     queueNextComment();
     return () => window.clearTimeout(timeoutId);
-  }, []);
+  }, [commentInterval]);
+
+  useEffect(() => {
+    if (!settingsOpen) return;
+
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      if (!settingsRef.current?.contains(event.target as Node)) setSettingsOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSettingsOpen(false);
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [settingsOpen]);
 
   useEffect(() => {
     if (!autoFollow || !messagesRef.current) return;
@@ -263,7 +286,64 @@ export default function Home() {
             </div>
             <div className="header-pills">
               <span className="rank-pill">✦ 新星主播</span>
-              <button className="follow-button">＋ 关注</button>
+              <button
+                className={isFollowing ? "follow-button following" : "follow-button"}
+                onClick={() => setIsFollowing((value) => !value)}
+                aria-pressed={isFollowing}
+                title={isFollowing ? "点击取消关注" : "点击关注主播"}
+              >
+                {isFollowing ? "✓ 已关注" : "＋ 关注"}
+              </button>
+              <div className="settings-wrap" ref={settingsRef}>
+                <button
+                  className={settingsOpen ? "settings-button active" : "settings-button"}
+                  onClick={() => setSettingsOpen((value) => !value)}
+                  aria-expanded={settingsOpen}
+                  aria-haspopup="dialog"
+                >
+                  <span aria-hidden="true">•••</span><span className="settings-label">更多设置</span>
+                </button>
+                {settingsOpen && (
+                  <div className="settings-panel" role="dialog" aria-label="直播间更多设置">
+                    <div className="settings-heading">
+                      <div><strong>更多设置</strong><small>调整直播间演示数据</small></div>
+                      <button
+                        onClick={() => {
+                          setViewerCount(1284);
+                          setCommentInterval(3);
+                        }}
+                      >
+                        恢复默认
+                      </button>
+                    </div>
+                    <label className="setting-field">
+                      <span><b>在线人数</b><small>立即更新右侧显示</small></span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="999999"
+                        value={viewerCount}
+                        onChange={(event) => {
+                          const next = Number(event.target.value);
+                          setViewerCount(Number.isFinite(next) ? Math.min(999999, Math.max(0, next)) : 0);
+                        }}
+                      />
+                    </label>
+                    <label className="speed-field">
+                      <span><b>评论出现速度</b><strong>约每 {commentInterval} 秒</strong></span>
+                      <input
+                        type="range"
+                        min="1"
+                        max="10"
+                        step="1"
+                        value={commentInterval}
+                        onChange={(event) => setCommentInterval(Number(event.target.value))}
+                      />
+                      <span className="speed-scale"><small>快</small><small>慢</small></span>
+                    </label>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -334,7 +414,7 @@ export default function Home() {
           <div className="chat-tabs">
             <button className="active">聊天室</button>
             <button>贡献榜</button>
-            <span><i /> {isLive ? "1,284" : "328"} 人在线</span>
+            <span><i /> {viewerCount.toLocaleString("zh-CN")} 人在线</span>
           </div>
           <div className="room-banner">
             <span>📣</span>
