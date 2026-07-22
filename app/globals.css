@@ -124,9 +124,9 @@ button { color: inherit; }
 .video-stage::before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,.08) 1px, transparent 1px); background-size: 24px 24px; mask-image: linear-gradient(to bottom, transparent, #000 25%, #000 75%, transparent); }
 .camera-feed { width: 100%; height: 100%; object-fit: cover; display: block; position: relative; z-index: 1; }
 .camera-feed.mirrored { transform: scaleX(-1); }
-.danmaku-layer { position: absolute; z-index: 3; inset: 0; overflow: hidden; pointer-events: none; visibility: visible; opacity: 1; mask-image: linear-gradient(to right, transparent 0, #000 5%, #000 96%, transparent 100%); transition: opacity .18s, visibility .18s; }
+.danmaku-layer { position: absolute; z-index: 3; top: 0; right: 0; left: 0; height: 50%; overflow: hidden; pointer-events: none; visibility: visible; opacity: 1; mask-image: linear-gradient(to right, transparent 0, #000 5%, #000 96%, transparent 100%); transition: height .2s, opacity .18s, visibility .18s; }
 .danmaku-layer.hidden { visibility: hidden; opacity: 0; }
-.danmaku-item { position: absolute; top: calc(14% + var(--track) * 8.5%); left: 100%; display: flex; align-items: center; white-space: nowrap; padding: 7px 12px; border: 1px solid rgba(255,255,255,.18); border-radius: 99px; color: #fff; background: rgba(20,17,26,.58); box-shadow: 0 4px 16px rgba(0,0,0,.2); backdrop-filter: blur(7px); opacity: var(--danmaku-opacity, .92); font-size: var(--danmaku-font-size, 13px); line-height: 1; text-shadow: 0 1px 4px rgba(0,0,0,.55); animation: danmaku-move var(--duration) linear forwards; will-change: transform; }
+.danmaku-item { position: absolute; top: var(--track-top, 12%); left: 100%; display: flex; align-items: center; white-space: nowrap; padding: 7px 12px; border: 1px solid rgba(255,255,255,.18); border-radius: 99px; color: #fff; background: rgba(20,17,26,.58); box-shadow: 0 4px 16px rgba(0,0,0,.2); backdrop-filter: blur(7px); opacity: var(--danmaku-opacity, .8); font-size: var(--danmaku-font-size, 13px); line-height: 1; text-shadow: 0 1px 4px rgba(0,0,0,.55); animation: danmaku-move var(--duration) linear forwards; will-change: transform; }
 .danmaku-item strong { font-weight: 800; }
 .danmaku-item span { color: rgba(255,255,255,.96); }
 .empty-stage { position: absolute; z-index: 2; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; padding: 30px; }
@@ -173,14 +173,14 @@ button { color: inherit; }
 .volume-popover button { flex: 0 0 auto; border: 0; padding: 0; color: #fff; background: transparent; font-size: 10px; cursor: pointer; }
 .volume-popover input { min-width: 0; width: 100%; accent-color: #ff5d92; cursor: pointer; }
 .volume-popover > span { width: 29px; color: #c9c5cd; font-size: 9px; text-align: right; font-variant-numeric: tabular-nums; }
-.danmaku-settings-popover { right: 0; width: 258px; padding: 14px; border-radius: 14px; }
+.danmaku-settings-popover { right: 0; width: 310px; padding: 14px; border-radius: 14px; }
 .control-panel-heading { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,.11); }
 .control-panel-heading strong { font-size: 12px; }
 .control-panel-heading button { border: 0; color: #ff91b2; background: transparent; font-size: 9px; cursor: pointer; }
-.danmaku-settings-popover label { display: block; margin-top: 12px; }
-.danmaku-settings-popover label > span { display: flex; align-items: center; justify-content: space-between; color: #d8d4dc; font-size: 10px; }
-.danmaku-settings-popover label b { color: #ff91b2; font-size: 9px; font-weight: 600; }
-.danmaku-settings-popover input { width: 100%; margin-top: 8px; accent-color: #ff5d92; cursor: pointer; }
+.danmaku-setting-row { display: grid; grid-template-columns: 58px minmax(0, 1fr) 45px; align-items: center; gap: 9px; margin-top: 13px; }
+.danmaku-setting-row > span { color: #e2dee5; font-size: 10px; white-space: nowrap; }
+.danmaku-setting-row b { color: #fff; font-size: 10px; font-weight: 600; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.danmaku-setting-row input { min-width: 0; width: 100%; margin: 0; accent-color: #ff5d92; cursor: pointer; }
 .end-button { border: 0; border-radius: 9px; padding: 9px 13px; color: white; background: rgba(255, 73, 115, .9); font-size: 11px; cursor: pointer; }
 .end-button.compact { height: 30px; margin-left: 4px; padding: 0 10px; background: rgba(255,73,115,.78); }
 .spinning { animation: control-spin .8s linear infinite; }
@@ -288,7 +288,7 @@ button { color: inherit; }
   .control-icon { width: 20px; height: 20px; }
   .live-duration { min-width: 59px; margin-left: 1px; font-size: 11px; }
   .end-button.compact { display: none; }
-  .danmaku-settings-popover { position: fixed; right: 10px; bottom: 78px; width: min(258px, calc(100vw - 20px)); }
+  .danmaku-settings-popover { position: fixed; right: 10px; bottom: 78px; width: min(310px, calc(100vw - 20px)); }
   .volume-popover { left: 0; transform: none; }
 }
 

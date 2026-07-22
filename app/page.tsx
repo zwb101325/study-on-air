@@ -12,12 +12,12 @@ type ChatMessage = {
 
 type DanmakuItem = ChatMessage & {
   barrageId: number;
-  track: number;
+  trackTop: number;
   duration: number;
 };
 
 type DanmakuStyle = CSSProperties & {
-  "--track": number;
+  "--track-top": string;
   "--duration": string;
 };
 
@@ -68,6 +68,14 @@ const gifts = [
   { icon: "🚀", name: "星际旅行", price: "188 星糖" },
 ];
 
+const danmakuSpeedOptions = [
+  { label: "极慢", factor: 0.55 },
+  { label: "较慢", factor: 0.75 },
+  { label: "适中", factor: 1 },
+  { label: "较快", factor: 1.35 },
+  { label: "极快", factor: 1.75 },
+] as const;
+
 function CameraGlyph() {
   return (
     <span className="camera-glyph" aria-hidden="true">
@@ -101,9 +109,10 @@ export default function Home() {
   const [volumeOpen, setVolumeOpen] = useState(false);
   const [danmakuEnabled, setDanmakuEnabled] = useState(true);
   const [danmakuSettingsOpen, setDanmakuSettingsOpen] = useState(false);
-  const [danmakuOpacity, setDanmakuOpacity] = useState(0.92);
-  const [danmakuFontSize, setDanmakuFontSize] = useState(13);
-  const [danmakuSpeed, setDanmakuSpeed] = useState(1);
+  const [danmakuDisplayArea, setDanmakuDisplayArea] = useState(50);
+  const [danmakuOpacity, setDanmakuOpacity] = useState(80);
+  const [danmakuFontSize, setDanmakuFontSize] = useState(100);
+  const [danmakuSpeed, setDanmakuSpeed] = useState(2);
   const [isPictureInPicture, setIsPictureInPicture] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -123,12 +132,15 @@ export default function Home() {
 
   const showDanmaku = (message: ChatMessage) => {
     const barrageId = nextDanmakuId.current++;
-    const duration = (10 + (barrageId % 4)) / danmakuSpeed;
+    const trackCount = Math.max(1, Math.min(8, Math.round(danmakuDisplayArea / 12.5)));
+    const track = barrageId % trackCount;
+    const trackTop = trackCount === 1 ? 12 : 8 + (track / (trackCount - 1)) * 74;
+    const duration = (10 + (barrageId % 4)) / danmakuSpeedOptions[danmakuSpeed].factor;
     const item: DanmakuItem = {
       ...message,
       barrageId,
       duration,
-      track: barrageId % 6,
+      trackTop,
     };
 
     setDanmakuItems((current) => [...current.slice(-17), item]);
@@ -201,7 +213,7 @@ export default function Home() {
 
     queueNextComment();
     return () => window.clearTimeout(timeoutId);
-  }, [commentInterval, danmakuSpeed]);
+  }, [commentInterval, danmakuDisplayArea, danmakuSpeed]);
 
   useEffect(() => {
     if (!settingsOpen) return;
@@ -553,8 +565,9 @@ export default function Home() {
             <div
               className={danmakuEnabled ? "danmaku-layer" : "danmaku-layer hidden"}
               style={{
-                "--danmaku-opacity": danmakuOpacity,
-                "--danmaku-font-size": `${danmakuFontSize}px`,
+                height: `${danmakuDisplayArea}%`,
+                "--danmaku-opacity": danmakuOpacity / 100,
+                "--danmaku-font-size": `${13 * (danmakuFontSize / 100)}px`,
               } as DanmakuLayerStyle}
               aria-hidden="true"
             >
@@ -563,7 +576,7 @@ export default function Home() {
                   className="danmaku-item"
                   key={item.barrageId}
                   style={{
-                    "--track": item.track,
+                    "--track-top": `${item.trackTop}%`,
                     "--duration": `${item.duration}s`,
                   } as DanmakuStyle}
                 >
@@ -678,19 +691,27 @@ export default function Home() {
                     <div className="danmaku-settings-popover" role="dialog" aria-label="弹幕设置">
                       <div className="control-panel-heading">
                         <strong>弹幕设置</strong>
-                        <button onClick={() => { setDanmakuOpacity(0.92); setDanmakuFontSize(13); setDanmakuSpeed(1); }}>恢复默认</button>
+                        <button onClick={() => { setDanmakuDisplayArea(50); setDanmakuOpacity(80); setDanmakuFontSize(100); setDanmakuSpeed(2); }}>恢复默认</button>
                       </div>
-                      <label>
-                        <span>不透明度 <b>{Math.round(danmakuOpacity * 100)}%</b></span>
-                        <input type="range" min="0.25" max="1" step="0.05" value={danmakuOpacity} onChange={(event) => setDanmakuOpacity(Number(event.target.value))} />
+                      <label className="danmaku-setting-row">
+                        <span>显示区域</span>
+                        <input aria-label="弹幕显示区域" type="range" min="10" max="100" step="10" value={danmakuDisplayArea} onChange={(event) => setDanmakuDisplayArea(Number(event.target.value))} />
+                        <b>{danmakuDisplayArea}%</b>
                       </label>
-                      <label>
-                        <span>字号 <b>{danmakuFontSize}px</b></span>
-                        <input type="range" min="11" max="20" step="1" value={danmakuFontSize} onChange={(event) => setDanmakuFontSize(Number(event.target.value))} />
+                      <label className="danmaku-setting-row">
+                        <span>不透明度</span>
+                        <input aria-label="弹幕不透明度" type="range" min="10" max="100" step="10" value={danmakuOpacity} onChange={(event) => setDanmakuOpacity(Number(event.target.value))} />
+                        <b>{danmakuOpacity}%</b>
                       </label>
-                      <label>
-                        <span>速度 <b>{danmakuSpeed.toFixed(1)}×</b></span>
-                        <input type="range" min="0.6" max="1.8" step="0.1" value={danmakuSpeed} onChange={(event) => setDanmakuSpeed(Number(event.target.value))} />
+                      <label className="danmaku-setting-row">
+                        <span>字体大小</span>
+                        <input aria-label="弹幕字体大小" type="range" min="50" max="170" step="10" value={danmakuFontSize} onChange={(event) => setDanmakuFontSize(Number(event.target.value))} />
+                        <b>{danmakuFontSize}%</b>
+                      </label>
+                      <label className="danmaku-setting-row">
+                        <span>弹幕速度</span>
+                        <input aria-label="弹幕速度" aria-valuetext={danmakuSpeedOptions[danmakuSpeed].label} type="range" min="0" max="4" step="1" value={danmakuSpeed} onChange={(event) => setDanmakuSpeed(Number(event.target.value))} />
+                        <b>{danmakuSpeedOptions[danmakuSpeed].label}</b>
                       </label>
                     </div>
                   )}
