@@ -222,7 +222,7 @@ button { color: inherit; }
 .message { margin: 0 0 13px; font-size: 11px; line-height: 1.62; color: #6f6b77; animation: message-in .24s ease-out both; }
 .message strong { color: #9b7eca; font-weight: 600; }
 .message.accent strong { color: #f05d8d; }
-.message.joined { color: #aaa4af; font-size: 10px; }
+.message.joined { color: #aaa4af; font-size: 10px; text-align: center; }
 .message.joined::before { content: "✦"; margin-right: 5px; color: #67caa1; }
 .message.joined strong { font-weight: 600; }
 .latest-button { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); border: 1px solid #ffd2e0; border-radius: 99px; padding: 7px 13px; color: #eb4e83; background: rgba(255,255,255,.95); box-shadow: 0 7px 20px rgba(72,51,80,.14); font-size: 9px; cursor: pointer; backdrop-filter: blur(8px); }

@@ -127,6 +127,7 @@ export default function Home() {
   const [growthInterval, setGrowthInterval] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [messages, setMessages] = useState(initialMessages);
+  const [showWelcome, setShowWelcome] = useState(true);
   const [danmakuItems, setDanmakuItems] = useState<DanmakuItem[]>([]);
   const [draft, setDraft] = useState("");
   const [autoFollow, setAutoFollow] = useState(true);
@@ -265,6 +266,12 @@ export default function Home() {
       behavior: "smooth",
     });
   }, [messages, autoFollow]);
+
+  useEffect(() => {
+    if (showWelcome && messages.filter((message) => message.id >= 20).length >= 3) {
+      setShowWelcome(false);
+    }
+  }, [messages, showWelcome]);
 
   const handleMessagesScroll = () => {
     const container = messagesRef.current;
@@ -814,7 +821,7 @@ export default function Home() {
               aria-live="polite"
               aria-relevant="additions"
             >
-              <div className="welcome-line"><span>✦</span> 你来到了晚风的直播间</div>
+              {showWelcome && <div className="welcome-line"><span>✦</span> 你进入了直播间</div>}
               {messages.map((message) => (
                 <p className={`${message.accent ? "message accent" : "message"}${message.joined ? " joined" : ""}`} key={message.id}>
                   <strong style={message.color ? { color: message.color } : undefined}>{message.user}</strong><span>{message.joined ? ` ${message.text}` : `：${message.text}`}</span>
