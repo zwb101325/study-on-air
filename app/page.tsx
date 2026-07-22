@@ -27,6 +27,27 @@ type DanmakuLayerStyle = CSSProperties & {
   "--danmaku-font-size": string;
 };
 
+type Gift = {
+  icon: string;
+  name: string;
+  price: string;
+  effect: string;
+  color: string;
+};
+
+type GiftEffect = {
+  id: number;
+  gift: Gift;
+};
+
+type GiftEffectStyle = CSSProperties & {
+  "--effect-color": string;
+};
+
+type GiftParticleStyle = CSSProperties & {
+  "--particle-angle": string;
+};
+
 const initialMessages: ChatMessage[] = [
   { id: 1, user: "柚子汽水", text: "晚上好！今天播什么呀？", color: "#8b72d7" },
   { id: 2, user: "bili_70241986", text: "前排坐好，等开播 ✨", color: "#5b8fd1" },
@@ -61,12 +82,17 @@ const liveComments = [
   { user: "住在月亮背面的人", text: "安静听你聊天就很开心", color: "#765fc2" },
 ];
 
-const gifts = [
-  { icon: "🌷", name: "小花花", price: "1 星糖" },
-  { icon: "💌", name: "心动来信", price: "5 星糖" },
-  { icon: "🧋", name: "加杯奶茶", price: "10 星糖" },
-  { icon: "🎠", name: "梦幻木马", price: "66 星糖" },
-  { icon: "🚀", name: "星际旅行", price: "188 星糖" },
+const gifts: Gift[] = [
+  { icon: "🌷", name: "小花花", price: "1 星糖", effect: "bloom", color: "#ff6f9f" },
+  { icon: "💌", name: "心动来信", price: "5 星糖", effect: "letter", color: "#ff5f8f" },
+  { icon: "🧋", name: "加杯奶茶", price: "10 星糖", effect: "bubble", color: "#d89963" },
+  { icon: "🎠", name: "梦幻木马", price: "66 星糖", effect: "carousel", color: "#bd8cff" },
+  { icon: "🚀", name: "星际旅行", price: "188 星糖", effect: "rocket", color: "#6ca7ff" },
+  { icon: "⭐", name: "星光棒", price: "20 星糖", effect: "star", color: "#ffd65c" },
+  { icon: "🐳", name: "星海鲸语", price: "88 星糖", effect: "whale", color: "#5dc7e8" },
+  { icon: "👑", name: "闪耀王冠", price: "520 星糖", effect: "crown", color: "#ffc247" },
+  { icon: "🎆", name: "流星烟火", price: "999 星糖", effect: "fireworks", color: "#ff71c8" },
+  { icon: "🏰", name: "梦幻城堡", price: "1314 星糖", effect: "castle", color: "#9c83ff" },
 ];
 
 const danmakuSpeedOptions = [
@@ -100,8 +126,10 @@ export default function Home() {
   const settingsRef = useRef<HTMLDivElement>(null);
   const nextMessageId = useRef(20);
   const nextDanmakuId = useRef(1);
+  const nextGiftEffectId = useRef(1);
   const nextArrivalIndex = useRef(0);
   const danmakuTimersRef = useRef<Set<number>>(new Set());
+  const giftEffectTimersRef = useRef<Set<number>>(new Set());
   const [isLive, setIsLive] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [micOn, setMicOn] = useState(true);
@@ -131,6 +159,7 @@ export default function Home() {
   const [messages, setMessages] = useState(initialMessages);
   const [showWelcome, setShowWelcome] = useState(true);
   const [danmakuItems, setDanmakuItems] = useState<DanmakuItem[]>([]);
+  const [giftEffects, setGiftEffects] = useState<GiftEffect[]>([]);
   const [draft, setDraft] = useState("");
   const [autoFollow, setAutoFollow] = useState(true);
   const [notice, setNotice] = useState("点击下方按钮，开启你的实时画面");
@@ -168,6 +197,8 @@ export default function Home() {
       streamRef.current?.getTracks().forEach((track) => track.stop());
       danmakuTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
       danmakuTimersRef.current.clear();
+      giftEffectTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
+      giftEffectTimersRef.current.clear();
     };
   }, []);
 
@@ -456,6 +487,17 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
+  const triggerGiftEffect = (gift: Gift) => {
+    const id = nextGiftEffectId.current++;
+    setGiftEffects((current) => [...current.slice(-2), { id, gift }]);
+
+    const timerId = window.setTimeout(() => {
+      setGiftEffects((current) => current.filter((effect) => effect.id !== id));
+      giftEffectTimersRef.current.delete(timerId);
+    }, 3000);
+    giftEffectTimersRef.current.add(timerId);
+  };
+
   const sendMessage = (event: FormEvent) => {
     event.preventDefault();
     const text = draft.trim();
@@ -678,6 +720,30 @@ export default function Home() {
               ))}
             </div>
 
+            <div className="gift-effects-layer" aria-live="polite" aria-atomic="false">
+              {giftEffects.map(({ id, gift }) => (
+                <div
+                  className={`gift-effect effect-${gift.effect}`}
+                  key={id}
+                  style={{ "--effect-color": gift.color } as GiftEffectStyle}
+                >
+                  <div className="gift-particles" aria-hidden="true">
+                    {Array.from({ length: 12 }, (_, index) => (
+                      <span
+                        key={index}
+                        style={{ "--particle-angle": `${index * 30}deg` } as GiftParticleStyle}
+                      >
+                        ✦
+                      </span>
+                    ))}
+                  </div>
+                  <span className="gift-effect-icon" aria-hidden="true">{gift.icon}</span>
+                  <strong>{gift.name}</strong>
+                  <small>送给晚风一份心意</small>
+                </div>
+              ))}
+            </div>
+
             {!isLive && (
               <div className="empty-stage">
                 <div className="camera-orbit"><CameraGlyph /></div>
@@ -837,7 +903,13 @@ export default function Home() {
             </div>
             <div className="gift-list">
               {gifts.map((gift) => (
-                <button className="gift-item" key={gift.name} title={`赠送${gift.name}`}>
+                <button
+                  className="gift-item"
+                  key={gift.name}
+                  title={`赠送${gift.name}`}
+                  aria-label={`赠送${gift.name}，${gift.price}`}
+                  onClick={() => triggerGiftEffect(gift)}
+                >
                   <span>{gift.icon}</span><strong>{gift.name}</strong><small>{gift.price}</small>
                 </button>
               ))}
