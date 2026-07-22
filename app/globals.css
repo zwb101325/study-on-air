@@ -75,7 +75,8 @@ button { color: inherit; }
 .room-main { border-radius: 19px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; min-height: 0; height: calc(100vh - 104px); max-height: calc(100vh - 104px); }
 .room-header { min-height: 82px; flex: 0 0 auto; padding: 13px 18px; display: flex; align-items: center; gap: 13px; }
 .host-avatar { position: relative; flex: 0 0 auto; width: 50px; height: 50px; display: grid; place-items: center; border-radius: 50%; color: white; font-size: 19px; font-weight: 800; background: linear-gradient(145deg, #ff97b8 0%, #b89afd 100%); border: 3px solid white; box-shadow: 0 3px 13px rgba(85, 63, 118, .18); }
-.online-dot { position: absolute; right: 0; bottom: 1px; width: 12px; height: 12px; border-radius: 50%; background: #51d59a; border: 2px solid white; }
+.host-avatar > img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
+.online-dot { position: absolute; z-index: 2; right: 0; bottom: 1px; width: 12px; height: 12px; border-radius: 50%; background: #51d59a; border: 2px solid white; }
 .room-copy { min-width: 0; }
 .title-row { display: flex; align-items: center; gap: 9px; }
 .title-row h1 { font-size: 17px; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -101,6 +102,17 @@ button { color: inherit; }
 .settings-heading button { border: 0; padding: 4px; color: #a27ac1; background: transparent; font-size: 11px; font-weight: 500; cursor: pointer; }
 .settings-section-title { margin-top: 14px; color: #a19aa6; font-size: 9px; font-weight: 700; letter-spacing: .08em; }
 .settings-section-title.data-title { margin-top: 18px; padding-top: 14px; border-top: 1px solid #f0edf3; }
+.avatar-setting { margin-top: 10px; min-height: 54px; display: flex; align-items: center; gap: 9px; padding: 8px 9px; border: 1px solid #e8e3eb; border-radius: 12px; background: #faf8fb; }
+.avatar-preview { flex: 0 0 auto; width: 36px; height: 36px; display: grid; place-items: center; overflow: hidden; border-radius: 50%; color: #fff; background: linear-gradient(145deg, #ff97b8 0%, #b89afd 100%); font-size: 14px; font-weight: 800; }
+.avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+.avatar-setting-copy { min-width: 0; flex: 1; }
+.avatar-setting-copy b, .avatar-setting-copy small { display: block; }
+.avatar-setting-copy b { color: #5c5662; font-size: 10px; }
+.avatar-setting-copy small { margin-top: 3px; overflow: hidden; color: #aaa4af; font-size: 8px; white-space: nowrap; text-overflow: ellipsis; }
+.avatar-actions { flex: 0 0 auto; display: flex; align-items: center; gap: 5px; }
+.avatar-upload-button, .avatar-actions button { border: 0; padding: 5px 6px; color: #ed5486; background: transparent; font-size: 9px; cursor: pointer; }
+.avatar-upload-button input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+.avatar-actions button { color: #99939f; }
 .text-setting-field { display: block; margin-top: 11px; }
 .text-setting-field > span { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; color: #5c5662; font-size: 10px; font-weight: 700; }
 .text-setting-field > span small { color: #b4aeb8; font-size: 8px; font-weight: 400; }
@@ -114,7 +126,6 @@ button { color: inherit; }
 .setting-field input { width: 104px; height: 34px; border: 1px solid #e8e3eb; border-radius: 10px; padding: 0 10px; outline: 0; color: #645d69; background: #faf8fb; font-size: 11px; text-align: right; }
 .setting-field input:focus { border-color: #ff9fbe; box-shadow: 0 0 0 3px rgba(255,93,146,.08); }
 .speed-field { display: block; margin-top: 17px; }
-.growth-speed-field { padding-top: 14px; border-top: 1px solid #f0edf3; }
 .speed-field > span:first-child { display: flex; align-items: center; justify-content: space-between; }
 .speed-field > span:first-child strong { color: #ed5486; font-size: 10px; font-weight: 600; }
 .speed-field input { width: 100%; margin: 13px 0 4px; accent-color: #ff5d92; cursor: pointer; }

@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties, FormEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, CSSProperties, FormEvent, useEffect, useRef, useState } from "react";
 
 type ChatMessage = {
   id: number;
@@ -121,6 +121,8 @@ export default function Home() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [roomTitle, setRoomTitle] = useState("晚风里，和你聊聊天");
   const [hostId, setHostId] = useState("晚风同学");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarHint, setAvatarHint] = useState("JPG、PNG、WebP，最大 5MB");
   const [category, setCategory] = useState("日常 / 陪伴");
   const [viewerCount, setViewerCount] = useState(1284);
   const [commentInterval, setCommentInterval] = useState(3);
@@ -431,6 +433,29 @@ export default function Home() {
     }
   };
 
+  const handleAvatarUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setAvatarHint("请选择有效的图片文件");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setAvatarHint("图片不能超过 5MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== "string") return;
+      setAvatarUrl(reader.result);
+      setAvatarHint("头像已更新");
+    };
+    reader.onerror = () => setAvatarHint("图片读取失败，请重新选择");
+    reader.readAsDataURL(file);
+  };
+
   const sendMessage = (event: FormEvent) => {
     event.preventDefault();
     const text = draft.trim();
@@ -474,7 +499,10 @@ export default function Home() {
       <section className="room-layout">
         <div className="room-main">
           <div className="room-header">
-            <div className="host-avatar">{hostId.trim().slice(0, 1) || "晚"}<span className="online-dot" /></div>
+            <div className="host-avatar">
+              {avatarUrl ? <img src={avatarUrl} alt="主播头像" /> : hostId.trim().slice(0, 1) || "晚"}
+              <span className="online-dot" />
+            </div>
             <div className="room-copy">
               <div className="title-row">
                 <h1>{roomTitle || "未命名直播间"}</h1>
@@ -510,6 +538,8 @@ export default function Home() {
                         onClick={() => {
                           setRoomTitle("晚风里，和你聊聊天");
                           setHostId("晚风同学");
+                          setAvatarUrl(null);
+                          setAvatarHint("JPG、PNG、WebP，最大 5MB");
                           setCategory("日常 / 陪伴");
                           setViewerCount(1284);
                           setCommentInterval(3);
@@ -520,6 +550,19 @@ export default function Home() {
                       </button>
                     </div>
                     <div className="settings-section-title">直播间信息</div>
+                    <div className="avatar-setting">
+                      <div className="avatar-preview">
+                        {avatarUrl ? <img src={avatarUrl} alt="头像预览" /> : hostId.trim().slice(0, 1) || "晚"}
+                      </div>
+                      <div className="avatar-setting-copy"><b>主播头像</b><small>{avatarHint}</small></div>
+                      <div className="avatar-actions">
+                        <label className="avatar-upload-button">
+                          {avatarUrl ? "更换" : "上传"}
+                          <input type="file" accept="image/*" onChange={handleAvatarUpload} />
+                        </label>
+                        {avatarUrl && <button type="button" onClick={() => { setAvatarUrl(null); setAvatarHint("JPG、PNG、WebP，最大 5MB"); }}>移除</button>}
+                      </div>
+                    </div>
                     <label className="text-setting-field">
                       <span>直播间标题 <small>{roomTitle.length}/32</small></span>
                       <input
