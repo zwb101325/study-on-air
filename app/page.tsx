@@ -645,7 +645,15 @@ export default function Home() {
                     </div>
                   )}
                 </div>
-                <time className="live-duration" dateTime={`PT${elapsed}S`} title="直播持续时间">{formatDuration(elapsed)}</time>
+                <time
+                  className="live-duration"
+                  dateTime={`PT${elapsed}S`}
+                  data-tooltip="直播持续时间"
+                  aria-label={`直播持续时间 ${formatDuration(elapsed)}`}
+                  tabIndex={0}
+                >
+                  {formatDuration(elapsed)}
+                </time>
               </div>
               <div className="control-right">
                 <button
