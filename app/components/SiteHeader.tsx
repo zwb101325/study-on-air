@@ -1,3 +1,5 @@
+import { withBasePath } from "../base-path";
+
 type FocusPage = "flight" | "cafe" | "live" | "classroom";
 
 const navigation: Array<{ id: FocusPage; label: string; href: string }> = [
@@ -10,7 +12,7 @@ const navigation: Array<{ id: FocusPage; label: string; href: string }> = [
 export default function SiteHeader({ active }: { active?: FocusPage }) {
   return (
     <header className="topbar site-header">
-      <a className="brand" href="/" aria-label="返回晚风专注空间首页">
+      <a className="brand" href={withBasePath("/")} aria-label="返回晚风专注空间首页">
         <span className="brand-mark">W</span>
         <span>
           <strong>晚风 FOCUS</strong>
@@ -22,7 +24,7 @@ export default function SiteHeader({ active }: { active?: FocusPage }) {
         {navigation.map((item) => (
           <a
             className={active === item.id ? "focus-nav-link active" : "focus-nav-link"}
-            href={item.href}
+            href={withBasePath(item.href)}
             key={item.id}
             aria-current={active === item.id ? "page" : undefined}
           >
@@ -31,7 +33,7 @@ export default function SiteHeader({ active }: { active?: FocusPage }) {
         ))}
       </nav>
 
-      <a className="profile-button header-profile" href="/" aria-label="返回首页">晚</a>
+      <a className="profile-button header-profile" href={withBasePath("/")} aria-label="返回首页">晚</a>
     </header>
   );
 }

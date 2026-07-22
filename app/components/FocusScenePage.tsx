@@ -1,4 +1,5 @@
 import SiteHeader from "./SiteHeader";
+import { withBasePath } from "../base-path";
 
 type ScenePageProps = {
   active: "flight" | "cafe" | "classroom";
@@ -25,8 +26,8 @@ export default function FocusScenePage({ active, theme, kicker, title, descripti
           <h1>{title}</h1>
           <p>{description}</p>
           <div className="scene-actions">
-            <a className="hero-primary" href="/focus-live">去直播间共同专注 <span>→</span></a>
-            <a className="hero-secondary" href="/">返回首页</a>
+            <a className="hero-primary" href={withBasePath("/focus-live")}>去直播间共同专注 <span>→</span></a>
+            <a className="hero-secondary" href={withBasePath("/")}>返回首页</a>
           </div>
         </div>
 

@@ -2,6 +2,7 @@
 
 import { ChangeEvent, CSSProperties, FormEvent, useEffect, useRef, useState } from "react";
 import SiteHeader from "../components/SiteHeader";
+import { withBasePath } from "../base-path";
 
 type ChatMessage = {
   id: number;
@@ -755,10 +756,10 @@ export default function Home() {
             <div className={isLive ? "video-controls visible" : "video-controls"}>
               <div className="control-left">
                 <button className="control-button" onClick={togglePlayback} disabled={!isLive} aria-label={isPlaying ? "暂停播放" : "继续播放"} data-tooltip={isPlaying ? "暂停" : "播放"}>
-                  <img className="control-icon play-icon" src={isPlaying ? "/icons/pause.svg" : "/icons/play.svg"} alt="" aria-hidden="true" />
+                  <img className="control-icon play-icon" src={withBasePath(isPlaying ? "/icons/pause.svg" : "/icons/play.svg")} alt="" aria-hidden="true" />
                 </button>
                 <button className="control-button" onClick={refreshLive} disabled={!isLive || isStarting} aria-label="刷新直播画面" data-tooltip="刷新">
-                  <img className={isStarting ? "control-icon refresh-icon spinning" : "control-icon refresh-icon"} src="/icons/refresh.svg" alt="" aria-hidden="true" />
+                  <img className={isStarting ? "control-icon refresh-icon spinning" : "control-icon refresh-icon"} src={withBasePath("/icons/refresh.svg")} alt="" aria-hidden="true" />
                 </button>
                 <div className="control-popover-wrap">
                   <button
@@ -769,7 +770,7 @@ export default function Home() {
                     aria-expanded={volumeOpen}
                     data-tooltip="音量调节"
                   >
-                    <img className="control-icon volume-icon" src={isMuted || volume === 0 ? "/icons/volume-muted.svg" : "/icons/volume.svg"} alt="" aria-hidden="true" />
+                    <img className="control-icon volume-icon" src={withBasePath(isMuted || volume === 0 ? "/icons/volume-muted.svg" : "/icons/volume.svg")} alt="" aria-hidden="true" />
                   </button>
                   {volumeOpen && (
                     <div className="volume-popover">
@@ -810,7 +811,7 @@ export default function Home() {
                   aria-pressed={mirrored}
                   data-tooltip={mirrored ? "关闭镜像" : "开启镜像"}
                 >
-                  <img className="control-icon" src={mirrored ? "/icons/mirror-exit.svg" : "/icons/mirror.svg"} alt="" aria-hidden="true" />
+                  <img className="control-icon" src={withBasePath(mirrored ? "/icons/mirror-exit.svg" : "/icons/mirror.svg")} alt="" aria-hidden="true" />
                 </button>
                 <button
                   className={isPictureInPicture ? "control-button active" : "control-button"}
@@ -820,7 +821,7 @@ export default function Home() {
                   aria-pressed={isPictureInPicture}
                   data-tooltip={isPictureInPicture ? "退出小窗" : "小窗模式"}
                 >
-                  <img className="control-icon" src={isPictureInPicture ? "/icons/pip-exit.svg" : "/icons/pip.svg"} alt="" aria-hidden="true" />
+                  <img className="control-icon" src={withBasePath(isPictureInPicture ? "/icons/pip-exit.svg" : "/icons/pip.svg")} alt="" aria-hidden="true" />
                 </button>
                 <button
                   className={danmakuEnabled ? "control-button active danmaku-toggle" : "control-button danmaku-toggle"}
@@ -829,7 +830,7 @@ export default function Home() {
                   aria-pressed={danmakuEnabled}
                   data-tooltip={danmakuEnabled ? "关闭弹幕" : "开启弹幕"}
                 >
-                  <img className="control-icon" src={danmakuEnabled ? "/icons/danmaku.svg" : "/icons/danmaku-on.svg"} alt="" aria-hidden="true" />
+                  <img className="control-icon" src={withBasePath(danmakuEnabled ? "/icons/danmaku.svg" : "/icons/danmaku-on.svg")} alt="" aria-hidden="true" />
                 </button>
                 <div className="control-popover-wrap danmaku-settings-wrap">
                   <button
@@ -839,7 +840,7 @@ export default function Home() {
                     aria-expanded={danmakuSettingsOpen}
                     data-tooltip="弹幕设置"
                   >
-                    <img className="control-icon" src="/icons/danmaku-settings.svg" alt="" aria-hidden="true" />
+                    <img className="control-icon" src={withBasePath("/icons/danmaku-settings.svg")} alt="" aria-hidden="true" />
                   </button>
                   {danmakuSettingsOpen && (
                     <div className="danmaku-settings-popover" role="dialog" aria-label="弹幕设置">
@@ -877,7 +878,7 @@ export default function Home() {
                   aria-pressed={isFullscreen}
                   data-tooltip={isFullscreen ? "退出全屏" : "全屏模式"}
                 >
-                  <img className="control-icon" src={isFullscreen ? "/icons/fullscreen-exit.svg" : "/icons/fullscreen.svg"} alt="" aria-hidden="true" />
+                  <img className="control-icon" src={withBasePath(isFullscreen ? "/icons/fullscreen-exit.svg" : "/icons/fullscreen.svg")} alt="" aria-hidden="true" />
                 </button>
                 {isLive && <button className="end-button compact" onClick={stopLive} title="结束直播">结束</button>}
               </div>

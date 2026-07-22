@@ -1,4 +1,5 @@
 import SiteHeader from "./components/SiteHeader";
+import { withBasePath } from "./base-path";
 
 const focusSpaces = [
   {
@@ -52,7 +53,7 @@ export default function HomePage() {
           <h1>给每一次专注，<br /><em>一个恰好的场景。</em></h1>
           <p>从云端航班到温暖咖啡馆，从实时直播到安静课堂。选择今天的氛围，让开始变得简单。</p>
           <div className="hero-actions">
-            <a className="hero-primary" href="/focus-live">进入专注直播间 <span>→</span></a>
+            <a className="hero-primary" href={withBasePath("/focus-live")}>进入专注直播间 <span>→</span></a>
             <a className="hero-secondary" href="#focus-spaces">浏览全部场景</a>
           </div>
           <div className="hero-stats" aria-label="网站特点">
@@ -88,7 +89,7 @@ export default function HomePage() {
         </div>
         <div className="space-grid">
           {focusSpaces.map((space, index) => (
-            <a className={`space-card ${space.className}`} href={space.href} key={space.href}>
+            <a className={`space-card ${space.className}`} href={withBasePath(space.href)} key={space.href}>
               <span className="space-number">0{index + 1}</span>
               <span className="space-icon">{space.icon}</span>
               <small>{space.eyebrow}</small>
@@ -103,7 +104,7 @@ export default function HomePage() {
       <footer className="home-footer">
         <span className="brand-mark">W</span>
         <p><strong>晚风 FOCUS</strong><small>愿你在自己的节奏里，完成今天想做的事。</small></p>
-        <a href="/focus-live">现在开始 →</a>
+        <a href={withBasePath("/focus-live")}>现在开始 →</a>
       </footer>
     </main>
   );
