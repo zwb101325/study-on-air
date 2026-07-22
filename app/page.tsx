@@ -7,6 +7,7 @@ type ChatMessage = {
   user: string;
   text: string;
   accent?: boolean;
+  joined?: boolean;
   color?: string;
 };
 
@@ -76,6 +77,15 @@ const danmakuSpeedOptions = [
   { label: "极快", factor: 1.75 },
 ] as const;
 
+const growthOptions = [
+  { seconds: 0, label: "关闭自动增长" },
+  { seconds: 10, label: "每 10 秒 +1" },
+  { seconds: 5, label: "每 5 秒 +1" },
+  { seconds: 3, label: "每 3 秒 +1" },
+  { seconds: 2, label: "每 2 秒 +1" },
+  { seconds: 1, label: "每 1 秒 +1" },
+] as const;
+
 function CameraGlyph() {
   return (
     <span className="camera-glyph" aria-hidden="true">
@@ -99,6 +109,7 @@ export default function Home() {
   const settingsRef = useRef<HTMLDivElement>(null);
   const nextMessageId = useRef(20);
   const nextDanmakuId = useRef(1);
+  const nextArrivalIndex = useRef(0);
   const danmakuTimersRef = useRef<Set<number>>(new Set());
   const [isLive, setIsLive] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -122,6 +133,7 @@ export default function Home() {
   const [category, setCategory] = useState("日常 / 陪伴");
   const [viewerCount, setViewerCount] = useState(1284);
   const [commentInterval, setCommentInterval] = useState(3);
+  const [growthInterval, setGrowthInterval] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [messages, setMessages] = useState(initialMessages);
   const [danmakuItems, setDanmakuItems] = useState<DanmakuItem[]>([]);
@@ -214,6 +226,27 @@ export default function Home() {
     queueNextComment();
     return () => window.clearTimeout(timeoutId);
   }, [commentInterval, danmakuDisplayArea, danmakuSpeed]);
+
+  useEffect(() => {
+    if (growthInterval === 0) return;
+
+    const timerId = window.setInterval(() => {
+      const newcomer = liveComments[nextArrivalIndex.current % liveComments.length];
+      nextArrivalIndex.current += 1;
+      const arrivalMessage: ChatMessage = {
+        id: nextMessageId.current++,
+        user: newcomer.user,
+        text: "进入了直播间",
+        joined: true,
+        color: newcomer.color,
+      };
+
+      setViewerCount((current) => Math.min(999999, current + 1));
+      setMessages((current) => [...current.slice(-49), arrivalMessage]);
+    }, growthInterval * 1000);
+
+    return () => window.clearInterval(timerId);
+  }, [growthInterval]);
 
   useEffect(() => {
     if (!settingsOpen) return;
@@ -481,6 +514,7 @@ export default function Home() {
                           setCategory("日常 / 陪伴");
                           setViewerCount(1284);
                           setCommentInterval(3);
+                          setGrowthInterval(0);
                         }}
                       >
                         恢复默认
@@ -531,6 +565,14 @@ export default function Home() {
                           setViewerCount(Number.isFinite(next) ? Math.min(999999, Math.max(0, next)) : 0);
                         }}
                       />
+                    </label>
+                    <label className="setting-field growth-setting-field">
+                      <span><b>直播间涨粉速度</b><small>模拟新观众进入直播间</small></span>
+                      <select value={growthInterval} onChange={(event) => setGrowthInterval(Number(event.target.value))}>
+                        {growthOptions.map((option) => (
+                          <option key={option.seconds} value={option.seconds}>{option.label}</option>
+                        ))}
+                      </select>
                     </label>
                     <label className="speed-field">
                       <span><b>评论出现速度</b><strong>约每 {commentInterval} 秒</strong></span>
@@ -774,8 +816,8 @@ export default function Home() {
             >
               <div className="welcome-line"><span>✦</span> 你来到了晚风的直播间</div>
               {messages.map((message) => (
-                <p className={message.accent ? "message accent" : "message"} key={message.id}>
-                  <strong style={message.color ? { color: message.color } : undefined}>{message.user}</strong><span>：{message.text}</span>
+                <p className={`${message.accent ? "message accent" : "message"}${message.joined ? " joined" : ""}`} key={message.id}>
+                  <strong style={message.color ? { color: message.color } : undefined}>{message.user}</strong><span>{message.joined ? ` ${message.text}` : `：${message.text}`}</span>
                 </p>
               ))}
             </div>
