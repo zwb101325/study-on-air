@@ -20,6 +20,19 @@ const initialMessages: ChatMessage[] = [
   { id: 8, user: "一颗小星星", text: "画面好有氛围感" },
 ];
 
+const liveComments = [
+  { user: "云朵面包", text: "刚进来，先和大家打个招呼 👋" },
+  { user: "蓝莓星球", text: "主播晚上好，今天也来陪你啦" },
+  { user: "白桃乌龙", text: "这个画面好清晰！" },
+  { user: "北极甜虾", text: "默默蹲在直播间听你聊天" },
+  { user: "奶油小熊", text: "已分享给朋友，一起来玩～" },
+  { user: "银河便利店", text: "今天的氛围也太温柔了吧" },
+  { user: "海盐芝士", text: "送你一颗小星星 ✨" },
+  { user: "春日来信", text: "第一次来，已经点关注啦" },
+  { user: "草莓软糖", text: "弹幕打卡！大家晚上好" },
+  { user: "毛绒月亮", text: "边做作业边听，陪伴感满满" },
+];
+
 const gifts = [
   { icon: "🌷", name: "小花花", price: "1 星糖" },
   { icon: "💌", name: "心动来信", price: "5 星糖" },
@@ -47,6 +60,7 @@ export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
   const nextMessageId = useRef(20);
   const [isLive, setIsLive] = useState(false);
   const [micOn, setMicOn] = useState(true);
@@ -54,6 +68,7 @@ export default function Home() {
   const [elapsed, setElapsed] = useState(0);
   const [messages, setMessages] = useState(initialMessages);
   const [draft, setDraft] = useState("");
+  const [autoFollow, setAutoFollow] = useState(true);
   const [notice, setNotice] = useState("点击下方按钮，开启你的实时画面");
   const [isStarting, setIsStarting] = useState(false);
 
@@ -68,6 +83,48 @@ export default function Home() {
       streamRef.current?.getTracks().forEach((track) => track.stop());
     };
   }, []);
+
+  useEffect(() => {
+    let timeoutId: number;
+
+    const queueNextComment = () => {
+      const delay = 1800 + Math.random() * 2600;
+      timeoutId = window.setTimeout(() => {
+        const next = liveComments[Math.floor(Math.random() * liveComments.length)];
+        setMessages((current) => [
+          ...current.slice(-49),
+          { id: nextMessageId.current++, user: next.user, text: next.text },
+        ]);
+        queueNextComment();
+      }, delay);
+    };
+
+    queueNextComment();
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  useEffect(() => {
+    if (!autoFollow || !messagesRef.current) return;
+    messagesRef.current.scrollTo({
+      top: messagesRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages, autoFollow]);
+
+  const handleMessagesScroll = () => {
+    const container = messagesRef.current;
+    if (!container) return;
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    setAutoFollow(distanceFromBottom < 56);
+  };
+
+  const scrollToLatest = () => {
+    setAutoFollow(true);
+    messagesRef.current?.scrollTo({
+      top: messagesRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  };
 
   const stopLive = () => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -163,8 +220,9 @@ export default function Home() {
     event.preventDefault();
     const text = draft.trim();
     if (!text) return;
+    setAutoFollow(true);
     setMessages((current) => [
-      ...current.slice(-10),
+      ...current.slice(-49),
       { id: nextMessageId.current++, user: "我", text, accent: true },
     ]);
     setDraft("");
@@ -282,13 +340,26 @@ export default function Home() {
             <span>📣</span>
             <p><strong>直播间公告</strong>友好交流，快乐相遇。欢迎来到晚风的直播间！</p>
           </div>
-          <div className="messages" aria-live="polite">
-            <div className="welcome-line"><span>✦</span> 你来到了晚风的直播间</div>
-            {messages.map((message) => (
-              <p className={message.accent ? "message accent" : "message"} key={message.id}>
-                <strong>{message.user}</strong><span>：{message.text}</span>
-              </p>
-            ))}
+          <div className="chat-stream">
+            <div
+              className="messages"
+              ref={messagesRef}
+              onScroll={handleMessagesScroll}
+              aria-live="polite"
+              aria-relevant="additions"
+            >
+              <div className="welcome-line"><span>✦</span> 你来到了晚风的直播间</div>
+              {messages.map((message) => (
+                <p className={message.accent ? "message accent" : "message"} key={message.id}>
+                  <strong>{message.user}</strong><span>：{message.text}</span>
+                </p>
+              ))}
+            </div>
+            {!autoFollow && (
+              <button className="latest-button" onClick={scrollToLatest}>
+                ↓ 查看最新消息
+              </button>
+            )}
           </div>
           <div className="chat-reactions">
             <button aria-label="发送爱心">♥</button>

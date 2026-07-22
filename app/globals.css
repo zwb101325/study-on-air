@@ -147,12 +147,15 @@ button { color: inherit; }
 .room-banner { margin: 12px 12px 0; padding: 10px 11px; display: flex; gap: 8px; border-radius: 12px; background: linear-gradient(100deg, #fff3f7, #f7f1ff); }
 .room-banner p { margin: 0; color: #8b8794; font-size: 9px; line-height: 1.6; }
 .room-banner strong { color: #6f6877; margin-right: 5px; }
-.messages { flex: 1; overflow-y: auto; padding: 15px 17px 8px; min-height: 0; scrollbar-width: thin; scrollbar-color: #ded9e5 transparent; }
+.chat-stream { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+.messages { height: 100%; overflow-y: auto; padding: 15px 17px 8px; min-height: 0; scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: #ded9e5 transparent; }
 .welcome-line { text-align: center; color: #b0abb6; font-size: 9px; margin-bottom: 17px; }
 .welcome-line span { color: #ff7da6; margin-right: 5px; }
-.message { margin: 0 0 13px; font-size: 11px; line-height: 1.62; color: #6f6b77; }
+.message { margin: 0 0 13px; font-size: 11px; line-height: 1.62; color: #6f6b77; animation: message-in .24s ease-out both; }
 .message strong { color: #9b7eca; font-weight: 600; }
 .message.accent strong { color: #f05d8d; }
+.latest-button { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); border: 1px solid #ffd2e0; border-radius: 99px; padding: 7px 13px; color: #eb4e83; background: rgba(255,255,255,.95); box-shadow: 0 7px 20px rgba(72,51,80,.14); font-size: 9px; cursor: pointer; backdrop-filter: blur(8px); }
+.latest-button:hover { background: #fff3f7; }
 .chat-reactions { padding: 9px 13px 7px; border-top: 1px solid #f0edf4; display: flex; align-items: center; gap: 7px; }
 .chat-reactions button { border: 0; background: transparent; color: #b6b1bc; font-size: 19px; cursor: pointer; }
 .chat-reactions button:first-child { color: #ff6a98; }
@@ -166,6 +169,7 @@ button { color: inherit; }
 .footer-note { display: none; }
 
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes message-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
 @media (max-width: 1120px) {
   .room-layout { grid-template-columns: minmax(0, 1fr) 310px; width: calc(100% - 28px); }
