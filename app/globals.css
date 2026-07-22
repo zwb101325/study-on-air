@@ -84,7 +84,6 @@ button { color: inherit; }
 .live-badge { color: #8e8b98; background: #f4f2f6; font-size: 10px; padding: 4px 7px; border-radius: 7px; white-space: nowrap; }
 .live-badge.active { color: #fff; background: linear-gradient(100deg, #ff5d92, #ff7e80); box-shadow: 0 5px 13px rgba(255, 93, 146, .23); }
 .header-pills { margin-left: auto; display: flex; gap: 8px; align-items: center; }
-.rank-pill { font-size: 11px; color: #735fd4; background: #f0ecff; border-radius: 99px; padding: 7px 11px; }
 .follow-button { min-width: 72px; border: 1px solid transparent; border-radius: 99px; padding: 8px 15px; color: #fff; background: linear-gradient(110deg, #ff5d92, #ff7b9f); font-size: 12px; cursor: pointer; box-shadow: 0 6px 15px rgba(244, 72, 130, .2); transition: transform .2s, background .2s, color .2s, border-color .2s; }
 .follow-button:hover { transform: translateY(-1px); }
 .follow-button.following { color: #6f6977; border-color: #e8e3ec; background: #fff; box-shadow: none; }
@@ -93,13 +92,21 @@ button { color: inherit; }
 .settings-button { height: 34px; display: flex; align-items: center; gap: 6px; border: 1px solid #ebe7ef; border-radius: 99px; padding: 0 12px; color: #77717e; background: #fff; font-size: 11px; cursor: pointer; transition: color .2s, border-color .2s, background .2s; }
 .settings-button > span:first-child { letter-spacing: 1px; color: #a29ca8; transform: translateY(-2px); }
 .settings-button:hover, .settings-button.active { color: #ee4f84; border-color: #ffc6d9; background: #fff7fa; }
-.settings-panel { position: absolute; z-index: 20; top: calc(100% + 11px); right: 0; width: 286px; padding: 16px; border: 1px solid #ebe6ef; border-radius: 16px; background: rgba(255,255,255,.98); box-shadow: 0 18px 50px rgba(68,46,79,.18); backdrop-filter: blur(18px); animation: settings-in .18s ease-out both; }
+.settings-panel { position: absolute; z-index: 20; top: calc(100% + 11px); right: 0; width: 320px; max-height: min(610px, calc(100vh - 135px)); overflow-y: auto; overscroll-behavior: contain; padding: 16px; border: 1px solid #ebe6ef; border-radius: 16px; background: rgba(255,255,255,.98); box-shadow: 0 18px 50px rgba(68,46,79,.18); backdrop-filter: blur(18px); scrollbar-width: thin; scrollbar-color: #ded8e3 transparent; animation: settings-in .18s ease-out both; }
 .settings-panel::before { content: ""; position: absolute; top: -6px; right: 22px; width: 11px; height: 11px; border-left: 1px solid #ebe6ef; border-top: 1px solid #ebe6ef; background: #fff; transform: rotate(45deg); }
 .settings-heading { display: flex; align-items: flex-start; justify-content: space-between; padding-bottom: 13px; border-bottom: 1px solid #f0edf3; }
 .settings-heading strong, .settings-heading small { display: block; }
 .settings-heading strong { font-size: 14px; }
 .settings-heading small { margin-top: 3px; color: #aaa4af; font-size: 9px; }
 .settings-heading button { border: 0; padding: 4px; color: #a27ac1; background: transparent; font-size: 9px; cursor: pointer; }
+.settings-section-title { margin-top: 14px; color: #a19aa6; font-size: 9px; font-weight: 700; letter-spacing: .08em; }
+.settings-section-title.data-title { margin-top: 18px; padding-top: 14px; border-top: 1px solid #f0edf3; }
+.text-setting-field { display: block; margin-top: 11px; }
+.text-setting-field > span { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; color: #5c5662; font-size: 10px; font-weight: 700; }
+.text-setting-field > span small { color: #b4aeb8; font-size: 8px; font-weight: 400; }
+.text-setting-field input, .text-setting-field select { width: 100%; height: 35px; border: 1px solid #e8e3eb; border-radius: 10px; padding: 0 10px; outline: 0; color: #645d69; background: #faf8fb; font-size: 10px; }
+.text-setting-field select { cursor: pointer; }
+.text-setting-field input:focus, .text-setting-field select:focus { border-color: #ff9fbe; box-shadow: 0 0 0 3px rgba(255,93,146,.08); }
 .setting-field { margin-top: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .setting-field span b, .setting-field span small { display: block; }
 .setting-field span b, .speed-field b { color: #5c5662; font-size: 11px; }
@@ -213,7 +220,6 @@ button { color: inherit; }
   .room-header { min-height: 74px; padding: 11px 13px; }
   .host-avatar { width: 44px; height: 44px; }
   .title-row h1 { font-size: 14px; }
-  .rank-pill { display: none; }
   .video-stage { flex: none; min-height: auto; max-height: none; aspect-ratio: 16 / 9; }
   .gift-dock { min-height: 78px; padding: 8px 10px; gap: 8px; }
   .dock-intro, .wallet { display: none; }
