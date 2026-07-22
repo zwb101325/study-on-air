@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { CSSProperties, FormEvent, useEffect, useRef, useState } from "react";
 
 type ChatMessage = {
   id: number;
@@ -8,6 +8,17 @@ type ChatMessage = {
   text: string;
   accent?: boolean;
   color?: string;
+};
+
+type DanmakuItem = ChatMessage & {
+  barrageId: number;
+  track: number;
+  duration: number;
+};
+
+type DanmakuStyle = CSSProperties & {
+  "--track": number;
+  "--duration": string;
 };
 
 const initialMessages: ChatMessage[] = [
@@ -74,6 +85,8 @@ export default function Home() {
   const messagesRef = useRef<HTMLDivElement>(null);
   const settingsRef = useRef<HTMLDivElement>(null);
   const nextMessageId = useRef(20);
+  const nextDanmakuId = useRef(1);
+  const danmakuTimersRef = useRef<Set<number>>(new Set());
   const [isLive, setIsLive] = useState(false);
   const [micOn, setMicOn] = useState(true);
   const [mirrored, setMirrored] = useState(true);
@@ -86,10 +99,29 @@ export default function Home() {
   const [commentInterval, setCommentInterval] = useState(3);
   const [elapsed, setElapsed] = useState(0);
   const [messages, setMessages] = useState(initialMessages);
+  const [danmakuItems, setDanmakuItems] = useState<DanmakuItem[]>([]);
   const [draft, setDraft] = useState("");
   const [autoFollow, setAutoFollow] = useState(true);
   const [notice, setNotice] = useState("点击下方按钮，开启你的实时画面");
   const [isStarting, setIsStarting] = useState(false);
+
+  const showDanmaku = (message: ChatMessage) => {
+    const barrageId = nextDanmakuId.current++;
+    const duration = 10 + (barrageId % 4);
+    const item: DanmakuItem = {
+      ...message,
+      barrageId,
+      duration,
+      track: barrageId % 6,
+    };
+
+    setDanmakuItems((current) => [...current.slice(-17), item]);
+    const timerId = window.setTimeout(() => {
+      setDanmakuItems((current) => current.filter((entry) => entry.barrageId !== barrageId));
+      danmakuTimersRef.current.delete(timerId);
+    }, duration * 1000);
+    danmakuTimersRef.current.add(timerId);
+  };
 
   useEffect(() => {
     if (!isLive) return;
@@ -100,6 +132,8 @@ export default function Home() {
   useEffect(() => {
     return () => {
       streamRef.current?.getTracks().forEach((track) => track.stop());
+      danmakuTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
+      danmakuTimersRef.current.clear();
     };
   }, []);
 
@@ -110,10 +144,17 @@ export default function Home() {
       const delay = commentInterval * 1000 * (0.8 + Math.random() * 0.4);
       timeoutId = window.setTimeout(() => {
         const next = liveComments[Math.floor(Math.random() * liveComments.length)];
+        const incomingMessage: ChatMessage = {
+          id: nextMessageId.current++,
+          user: next.user,
+          text: next.text,
+          color: next.color,
+        };
         setMessages((current) => [
           ...current.slice(-49),
-          { id: nextMessageId.current++, user: next.user, text: next.text, color: next.color },
+          incomingMessage,
         ]);
+        showDanmaku(incomingMessage);
         queueNextComment();
       }, delay);
     };
@@ -257,11 +298,19 @@ export default function Home() {
     event.preventDefault();
     const text = draft.trim();
     if (!text) return;
+    const outgoingMessage: ChatMessage = {
+      id: nextMessageId.current++,
+      user: "我",
+      text,
+      accent: true,
+      color: "#ff6a98",
+    };
     setAutoFollow(true);
     setMessages((current) => [
       ...current.slice(-49),
-      { id: nextMessageId.current++, user: "我", text, accent: true },
+      outgoingMessage,
     ]);
+    showDanmaku(outgoingMessage);
     setDraft("");
   };
 
@@ -405,6 +454,22 @@ export default function Home() {
               playsInline
               aria-label="摄像头实时画面"
             />
+
+            <div className="danmaku-layer" aria-hidden="true">
+              {danmakuItems.map((item) => (
+                <div
+                  className="danmaku-item"
+                  key={item.barrageId}
+                  style={{
+                    "--track": item.track,
+                    "--duration": `${item.duration}s`,
+                  } as DanmakuStyle}
+                >
+                  <strong style={{ color: item.color ?? "#ff8db2" }}>{item.user}</strong>
+                  <span>：{item.text}</span>
+                </div>
+              ))}
+            </div>
 
             {!isLive && (
               <div className="empty-stage">
