@@ -67,6 +67,7 @@ button { color: inherit; }
   display: grid;
   grid-template-columns: minmax(0, 1fr) 354px;
   gap: 14px;
+  align-items: start;
   position: relative;
   z-index: 2;
 }
@@ -137,7 +138,7 @@ button { color: inherit; }
 .wallet strong { font-size: 12px; margin-top: 2px; }
 .wallet button { border: 0; width: 21px; height: 21px; color: white; border-radius: 7px; background: #ff5d92; cursor: pointer; }
 
-.chat-panel { border-radius: 19px; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+.chat-panel { border-radius: 19px; overflow: hidden; display: flex; flex-direction: column; min-height: 0; height: calc(100vh - 104px); max-height: calc(100vh - 104px); }
 .chat-tabs { height: 58px; display: flex; align-items: center; border-bottom: 1px solid var(--line); padding: 0 15px; gap: 19px; }
 .chat-tabs button { height: 100%; padding: 0 1px; border: 0; background: transparent; color: #96929e; font-size: 12px; cursor: pointer; position: relative; }
 .chat-tabs button.active { color: var(--ink); font-weight: 800; }
@@ -147,8 +148,8 @@ button { color: inherit; }
 .room-banner { margin: 12px 12px 0; padding: 10px 11px; display: flex; gap: 8px; border-radius: 12px; background: linear-gradient(100deg, #fff3f7, #f7f1ff); }
 .room-banner p { margin: 0; color: #8b8794; font-size: 9px; line-height: 1.6; }
 .room-banner strong { color: #6f6877; margin-right: 5px; }
-.chat-stream { flex: 1; min-height: 0; position: relative; overflow: hidden; }
-.messages { height: 100%; overflow-y: auto; padding: 15px 17px 8px; min-height: 0; scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: #ded9e5 transparent; }
+.chat-stream { flex: 1 1 0; min-height: 0; position: relative; overflow: hidden; }
+.messages { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; padding: 15px 17px 8px; min-height: 0; scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: #ded9e5 transparent; }
 .welcome-line { text-align: center; color: #b0abb6; font-size: 9px; margin-bottom: 17px; }
 .welcome-line span { color: #ff7da6; margin-right: 5px; }
 .message { margin: 0 0 13px; font-size: 11px; line-height: 1.62; color: #6f6b77; animation: message-in .24s ease-out both; }
@@ -192,7 +193,7 @@ button { color: inherit; }
   .dock-intro, .wallet { display: none; }
   .gift-item { min-width: 74px; }
   .gift-item:nth-last-child(-n+2) { display: block; }
-  .chat-panel { margin-top: 10px; height: 520px; border-radius: 16px; }
+  .chat-panel { margin-top: 10px; height: 520px; max-height: 520px; border-radius: 16px; }
 }
 
 @media (max-width: 520px) {
