@@ -297,6 +297,8 @@ button { color: inherit; }
 .control-button:disabled { cursor: not-allowed; transform: none; background: transparent; }
 .control-button:disabled .control-icon { opacity: .34; }
 .control-icon { display: block; width: 23px; height: 23px; object-fit: contain; pointer-events: none; filter: drop-shadow(0 1px 4px rgba(0,0,0,.35)); transition: opacity .16s, filter .16s; }
+.device-control-icon { width: 22px; height: 22px; }
+.device-control-icon.muted { opacity: .42; }
 .play-icon { width: 22px; height: 22px; }
 .refresh-icon { width: 24px; height: 24px; }
 .control-button[data-tooltip]::before, .live-duration[data-tooltip]::before { content: attr(data-tooltip); position: absolute; z-index: 8; left: 50%; bottom: calc(100% + 9px); min-width: max-content; padding: 6px 8px; border: 1px solid rgba(255,255,255,.12); border-radius: 7px; color: #fff; background: rgba(20,18,24,.92); box-shadow: 0 7px 20px rgba(0,0,0,.24); font-size: 10px; font-weight: 500; line-height: 1; white-space: nowrap; pointer-events: none; opacity: 0; transform: translate(-50%, 4px); transition: opacity .15s, transform .15s; }
@@ -308,6 +310,32 @@ button { color: inherit; }
 .live-duration:hover, .live-duration:focus-visible { background: rgba(255,255,255,.16); transform: translateY(-1px); }
 .control-popover-wrap { position: relative; flex: 0 0 auto; }
 .volume-popover, .danmaku-settings-popover { position: absolute; z-index: 7; bottom: calc(100% + 10px); border: 1px solid rgba(255,255,255,.13); color: #fff; background: rgba(24,21,29,.94); box-shadow: 0 12px 35px rgba(0,0,0,.3); backdrop-filter: blur(16px); animation: control-popover-in .16s ease-out both; }
+.device-popover { position: absolute; z-index: 8; left: 0; bottom: calc(100% + 10px); width: 292px; max-height: min(330px, calc(100vh - 130px)); overflow: hidden; padding: 12px; border: 1px solid rgba(255,255,255,.13); border-radius: 14px; color: #fff; background: rgba(24,21,29,.96); box-shadow: 0 12px 35px rgba(0,0,0,.3); backdrop-filter: blur(16px); animation: control-popover-in .16s ease-out both; }
+.microphone-device-popover { left: -38px; }
+.device-popover-heading { min-height: 37px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 0 2px 10px; border-bottom: 1px solid rgba(255,255,255,.1); }
+.device-popover-heading strong, .device-popover-heading small { display: block; }
+.device-popover-heading strong { font-size: 12px; }
+.device-popover-heading small { margin-top: 3px; color: #aaa5b0; font-size: 8px; }
+.device-popover-heading button { height: 25px; border: 1px solid rgba(255,255,255,.12); border-radius: 8px; padding: 0 8px; color: #e5e1e8; background: rgba(255,255,255,.07); font-size: 8px; cursor: pointer; }
+.device-popover-heading button:hover { color: #fff; background: rgba(255,255,255,.13); }
+.device-popover-heading button:disabled { opacity: .38; cursor: default; }
+.device-heading-actions { display: flex; gap: 4px; }
+.device-list { max-height: 236px; overflow-y: auto; overscroll-behavior: contain; margin-top: 8px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.2) transparent; }
+.device-option { width: 100%; min-height: 51px; display: grid; grid-template-columns: 30px minmax(0, 1fr) 18px; align-items: center; gap: 8px; border: 0; border-radius: 10px; padding: 6px 8px; color: #d8d4dc; background: transparent; text-align: left; cursor: pointer; transition: color .16s, background .16s; }
+.device-option:hover { color: #fff; background: rgba(255,255,255,.08); }
+.device-option.active { color: #fff; background: rgba(255,93,146,.13); }
+.device-option:disabled { opacity: .46; cursor: default; }
+.device-option > span:nth-child(2) { min-width: 0; }
+.device-option strong, .device-option small { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.device-option strong { font-size: 10px; font-weight: 650; }
+.device-option small { margin-top: 3px; color: #99949f; font-size: 8px; }
+.device-option b { color: #ff87ad; font-size: 12px; text-align: center; }
+.device-type-icon { width: 27px; height: 27px; display: block; position: relative; border-radius: 9px; background: rgba(255,255,255,.08); }
+.device-type-icon::before { content: ""; position: absolute; inset: 7px; border: 1.5px solid #d8d4dc; border-radius: 3px; }
+.device-type-icon.camera::after { content: ""; position: absolute; top: 9px; right: 4px; width: 5px; height: 9px; border: 1.5px solid #d8d4dc; border-left: 0; border-radius: 0 3px 3px 0; }
+.device-type-icon.microphone::before { inset: 5px 9px 8px; border-radius: 6px; }
+.device-type-icon.microphone::after { content: ""; position: absolute; left: 7px; right: 7px; bottom: 5px; height: 7px; border: 1.5px solid #d8d4dc; border-top: 0; border-radius: 0 0 8px 8px; }
+.device-empty { padding: 21px 12px 17px; color: #aaa5b0; font-size: 9px; line-height: 1.6; text-align: center; }
 .volume-popover { left: 50%; width: 48px; height: 132px; padding: 10px 7px 8px; display: flex; flex-direction: column; align-items: center; gap: 6px; border-radius: 10px; transform: translateX(-50%); }
 .volume-popover .volume-value { width: 100%; height: 20px; flex: 0 0 auto; border: 0; padding: 0; color: #ddd9e0; background: transparent; font-size: 12px; font-weight: 650; font-variant-numeric: tabular-nums; cursor: pointer; }
 .volume-popover input { width: 22px; height: 84px; min-height: 0; margin: 0; accent-color: #f2f0f4; cursor: pointer; writing-mode: vertical-lr; direction: rtl; appearance: slider-vertical; }
@@ -523,12 +551,17 @@ button { color: inherit; }
   .spotify-placeholder { padding-inline: 14px; justify-content: flex-start; }
   .video-controls { padding-inline: 8px; }
   .control-left, .control-right { gap: 1px; }
-  .control-button { width: 30px; height: 32px; }
-  .control-icon { width: 20px; height: 20px; }
-  .live-duration { min-width: 64px; margin-left: 1px; padding: 0 4px; font-size: 11px; }
+  .control-button { width: 26px; height: 32px; }
+  .control-icon { width: 18px; height: 18px; }
+  .live-duration { min-width: 56px; margin-left: 1px; padding: 0 3px; font-size: 10px; }
   .end-button.compact { display: none; }
   .danmaku-settings-popover { position: fixed; right: 10px; bottom: 78px; width: min(310px, calc(100vw - 20px)); }
+  .device-popover, .microphone-device-popover { position: fixed; right: 10px; bottom: 78px; left: 10px; width: auto; max-height: min(330px, calc(100vh - 150px)); }
   .volume-popover { left: 50%; transform: translateX(-50%); }
+}
+
+@media (max-width: 360px) {
+  .live-duration { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

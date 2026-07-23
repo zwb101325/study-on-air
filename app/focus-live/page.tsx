@@ -136,6 +136,10 @@ function getSpotifyEmbedUrl(value: string) {
   }
 }
 
+function getDeviceLabel(device: MediaDeviceInfo, index: number, fallback: string) {
+  return device.label || `${fallback} ${index + 1}`;
+}
+
 // ============================================================
 // #endregion
 // ============================================================
@@ -164,6 +168,13 @@ export default function Home() {
   const [volume, setVolume] = useState(0.65);
   const [isMuted, setIsMuted] = useState(true);
   const [volumeOpen, setVolumeOpen] = useState(false);
+  const [cameraDevices, setCameraDevices] = useState<MediaDeviceInfo[]>([]);
+  const [microphoneDevices, setMicrophoneDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedCameraId, setSelectedCameraId] = useState("");
+  const [selectedMicrophoneId, setSelectedMicrophoneId] = useState("");
+  const [cameraDeviceOpen, setCameraDeviceOpen] = useState(false);
+  const [microphoneDeviceOpen, setMicrophoneDeviceOpen] = useState(false);
+  const [switchingDevice, setSwitchingDevice] = useState<"camera" | "microphone" | null>(null);
   const [danmakuEnabled, setDanmakuEnabled] = useState(true);
   const [danmakuSettingsOpen, setDanmakuSettingsOpen] = useState(false);
   const [danmakuDisplayArea, setDanmakuDisplayArea] = useState(50);
@@ -199,6 +210,23 @@ export default function Home() {
   // ============================================================
   // #endregion
   // ============================================================
+
+  const refreshMediaDevices = useCallback(async () => {
+    if (!navigator.mediaDevices?.enumerateDevices) return;
+
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      setCameraDevices(devices.filter((device) => device.kind === "videoinput"));
+      setMicrophoneDevices(devices.filter((device) => device.kind === "audioinput"));
+
+      const activeCameraId = streamRef.current?.getVideoTracks()[0]?.getSettings().deviceId;
+      const activeMicrophoneId = streamRef.current?.getAudioTracks()[0]?.getSettings().deviceId;
+      if (activeCameraId) setSelectedCameraId(activeCameraId);
+      if (activeMicrophoneId) setSelectedMicrophoneId(activeMicrophoneId);
+    } catch {
+      // Device labels and identifiers can remain unavailable until permission is granted.
+    }
+  }, []);
 
   // ============================================================
   // #region 弹幕创建与情境评论触发
@@ -271,6 +299,18 @@ export default function Home() {
   // ============================================================
   // #region 媒体资源生命周期与播放器状态同步
   // ============================================================
+
+  useEffect(() => {
+    const mediaDevices = navigator.mediaDevices;
+    if (!mediaDevices?.enumerateDevices) return;
+
+    const handleDeviceChange = () => {
+      void refreshMediaDevices();
+    };
+
+    mediaDevices.addEventListener("devicechange", handleDeviceChange);
+    return () => mediaDevices.removeEventListener("devicechange", handleDeviceChange);
+  }, [refreshMediaDevices]);
 
   useEffect(() => {
     return () => {
@@ -455,8 +495,18 @@ export default function Home() {
       let stream: MediaStream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: { ideal: 1920 }, height: { ideal: 1080 }, facingMode: "user" },
-          audio: { echoCancellation: true, noiseSuppression: true },
+          video: {
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            ...(selectedCameraId
+              ? { deviceId: { exact: selectedCameraId } }
+              : { facingMode: "user" }),
+          },
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            ...(selectedMicrophoneId ? { deviceId: { exact: selectedMicrophoneId } } : {}),
+          },
         });
         setMicOn(true);
       } catch (error) {
@@ -470,10 +520,15 @@ export default function Home() {
       }
 
       streamRef.current = stream;
+      const activeCameraId = stream.getVideoTracks()[0]?.getSettings().deviceId;
+      const activeMicrophoneId = stream.getAudioTracks()[0]?.getSettings().deviceId;
+      if (activeCameraId) setSelectedCameraId(activeCameraId);
+      if (activeMicrophoneId) setSelectedMicrophoneId(activeMicrophoneId);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
       }
+      await refreshMediaDevices();
       if (resetElapsed) setElapsed(0);
       setIsLive(true);
       setIsPlaying(true);
@@ -496,6 +551,88 @@ export default function Home() {
   const startLive = () => connectCamera(true);
 
   const refreshLive = () => connectCamera(false);
+
+  const selectCameraDevice = async (deviceId: string, label: string) => {
+    setSelectedCameraId(deviceId);
+    setCameraDeviceOpen(false);
+    if (!streamRef.current || !isLive) {
+      setNotice(`已选择 ${label}，开启直播时生效`);
+      return;
+    }
+
+    setSwitchingDevice("camera");
+    try {
+      const cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          deviceId: { exact: deviceId },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+        audio: false,
+      });
+      const nextTrack = cameraStream.getVideoTracks()[0];
+      if (!nextTrack) throw new Error("No video track");
+
+      const currentStream = streamRef.current;
+      currentStream.getVideoTracks().forEach((track) => {
+        currentStream.removeTrack(track);
+        track.stop();
+      });
+      currentStream.addTrack(nextTrack);
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+        videoRef.current.srcObject = currentStream;
+        await videoRef.current.play();
+      }
+
+      setIsPlaying(true);
+      setNotice(`摄像头已切换为 ${label}`);
+      await refreshMediaDevices();
+    } catch {
+      setNotice(`无法切换到 ${label}，请检查设备是否被其他应用占用`);
+    } finally {
+      setSwitchingDevice(null);
+    }
+  };
+
+  const selectMicrophoneDevice = async (deviceId: string, label: string) => {
+    setSelectedMicrophoneId(deviceId);
+    setMicrophoneDeviceOpen(false);
+    if (!streamRef.current || !isLive) {
+      setNotice(`已选择 ${label}，开启直播时生效`);
+      return;
+    }
+
+    setSwitchingDevice("microphone");
+    try {
+      const microphoneStream = await navigator.mediaDevices.getUserMedia({
+        video: false,
+        audio: {
+          deviceId: { exact: deviceId },
+          echoCancellation: true,
+          noiseSuppression: true,
+        },
+      });
+      const nextTrack = microphoneStream.getAudioTracks()[0];
+      if (!nextTrack) throw new Error("No audio track");
+
+      const currentStream = streamRef.current;
+      currentStream.getAudioTracks().forEach((track) => {
+        currentStream.removeTrack(track);
+        track.stop();
+      });
+      nextTrack.enabled = true;
+      currentStream.addTrack(nextTrack);
+
+      setMicOn(true);
+      setNotice(`麦克风已切换为 ${label}`);
+      await refreshMediaDevices();
+    } catch {
+      setNotice(`无法切换到 ${label}，请检查设备权限或占用情况`);
+    } finally {
+      setSwitchingDevice(null);
+    }
+  };
 
   const togglePlayback = async () => {
     const video = videoRef.current;
@@ -555,11 +692,20 @@ export default function Home() {
 
     try {
       const audioStream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          ...(selectedMicrophoneId ? { deviceId: { exact: selectedMicrophoneId } } : {}),
+        },
       });
-      audioStream.getAudioTracks().forEach((track) => stream.addTrack(track));
+      const audioTrack = audioStream.getAudioTracks()[0];
+      if (!audioTrack) throw new Error("No audio track");
+      stream.addTrack(audioTrack);
+      const activeMicrophoneId = audioTrack.getSettings().deviceId;
+      if (activeMicrophoneId) setSelectedMicrophoneId(activeMicrophoneId);
       setMicOn(true);
       setNotice("麦克风已打开");
+      await refreshMediaDevices();
     } catch {
       setNotice("没有获得麦克风权限，请在浏览器设置中开启");
     }
@@ -904,10 +1050,113 @@ export default function Home() {
                 <button className="control-button" onClick={refreshLive} disabled={!isLive || isStarting} aria-label="刷新直播画面" data-tooltip="刷新">
                   <img className={isStarting ? "control-icon refresh-icon spinning" : "control-icon refresh-icon"} src={withBasePath("/icons/refresh.svg")} alt="" aria-hidden="true" />
                 </button>
+                <div className="control-popover-wrap device-control-wrap">
+                  <button
+                    className={cameraDeviceOpen ? "control-button active" : "control-button"}
+                    onClick={() => {
+                      setCameraDeviceOpen((value) => !value);
+                      setMicrophoneDeviceOpen(false);
+                      setVolumeOpen(false);
+                      setDanmakuSettingsOpen(false);
+                      void refreshMediaDevices();
+                    }}
+                    disabled={isStarting || switchingDevice === "camera"}
+                    aria-label="选择摄像头设备"
+                    aria-expanded={cameraDeviceOpen}
+                    data-tooltip="选择摄像头"
+                  >
+                    <img className="control-icon device-control-icon" src={withBasePath("/icons/camera-device.svg")} alt="" aria-hidden="true" />
+                  </button>
+                  {cameraDeviceOpen && (
+                    <div className="device-popover" role="dialog" aria-label="选择摄像头设备">
+                      <div className="device-popover-heading">
+                        <div><strong>选择摄像头</strong><small>{cameraDevices.length} 个可用设备</small></div>
+                        <button type="button" onClick={() => void refreshMediaDevices()}>刷新</button>
+                      </div>
+                      <div className="device-list">
+                        {cameraDevices.length ? cameraDevices.map((device, index) => {
+                          const label = getDeviceLabel(device, index, "摄像头");
+                          const active = device.deviceId === selectedCameraId;
+                          return (
+                            <button
+                              className={active ? "device-option active" : "device-option"}
+                              type="button"
+                              key={`camera-${device.deviceId || index}`}
+                              onClick={() => void selectCameraDevice(device.deviceId, label)}
+                              disabled={!device.deviceId || switchingDevice === "camera"}
+                              aria-pressed={active}
+                            >
+                              <span className="device-type-icon camera" aria-hidden="true" />
+                              <span><strong>{label}</strong><small>{active ? "当前摄像头" : "点击切换"}</small></span>
+                              {active && <b aria-hidden="true">✓</b>}
+                            </button>
+                          );
+                        }) : (
+                          <div className="device-empty">开启摄像头授权后，将显示可选设备</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="control-popover-wrap device-control-wrap">
+                  <button
+                    className={microphoneDeviceOpen ? "control-button active" : "control-button"}
+                    onClick={() => {
+                      setMicrophoneDeviceOpen((value) => !value);
+                      setCameraDeviceOpen(false);
+                      setVolumeOpen(false);
+                      setDanmakuSettingsOpen(false);
+                      void refreshMediaDevices();
+                    }}
+                    disabled={isStarting || switchingDevice === "microphone"}
+                    aria-label="选择麦克风设备"
+                    aria-expanded={microphoneDeviceOpen}
+                    data-tooltip="选择麦克风"
+                  >
+                    <img className={micOn ? "control-icon device-control-icon" : "control-icon device-control-icon muted"} src={withBasePath("/icons/microphone.svg")} alt="" aria-hidden="true" />
+                  </button>
+                  {microphoneDeviceOpen && (
+                    <div className="device-popover microphone-device-popover" role="dialog" aria-label="选择麦克风设备">
+                      <div className="device-popover-heading">
+                        <div><strong>选择麦克风</strong><small>{microphoneDevices.length} 个可用设备</small></div>
+                        <div className="device-heading-actions">
+                          <button type="button" onClick={() => void toggleMic()} disabled={!isLive}>{micOn ? "静音" : "开启"}</button>
+                          <button type="button" onClick={() => void refreshMediaDevices()}>刷新</button>
+                        </div>
+                      </div>
+                      <div className="device-list">
+                        {microphoneDevices.length ? microphoneDevices.map((device, index) => {
+                          const label = getDeviceLabel(device, index, "麦克风");
+                          const active = device.deviceId === selectedMicrophoneId;
+                          return (
+                            <button
+                              className={active ? "device-option active" : "device-option"}
+                              type="button"
+                              key={`microphone-${device.deviceId || index}`}
+                              onClick={() => void selectMicrophoneDevice(device.deviceId, label)}
+                              disabled={!device.deviceId || switchingDevice === "microphone"}
+                              aria-pressed={active}
+                            >
+                              <span className="device-type-icon microphone" aria-hidden="true" />
+                              <span><strong>{label}</strong><small>{active ? "当前麦克风" : "点击切换"}</small></span>
+                              {active && <b aria-hidden="true">✓</b>}
+                            </button>
+                          );
+                        }) : (
+                          <div className="device-empty">开启麦克风授权后，将显示可选设备</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <div className="control-popover-wrap">
                   <button
                     className={volumeOpen ? "control-button active" : "control-button"}
-                    onClick={() => setVolumeOpen((value) => !value)}
+                    onClick={() => {
+                      setVolumeOpen((value) => !value);
+                      setCameraDeviceOpen(false);
+                      setMicrophoneDeviceOpen(false);
+                    }}
                     disabled={!isLive}
                     aria-label="调节音量"
                     aria-expanded={volumeOpen}
@@ -985,7 +1234,12 @@ export default function Home() {
                 <div className="control-popover-wrap danmaku-settings-wrap">
                   <button
                     className={danmakuSettingsOpen ? "control-button active" : "control-button"}
-                    onClick={() => setDanmakuSettingsOpen((value) => !value)}
+                    onClick={() => {
+                      setDanmakuSettingsOpen((value) => !value);
+                      setCameraDeviceOpen(false);
+                      setMicrophoneDeviceOpen(false);
+                      setVolumeOpen(false);
+                    }}
                     aria-label="弹幕设置"
                     aria-expanded={danmakuSettingsOpen}
                     data-tooltip="弹幕设置"
