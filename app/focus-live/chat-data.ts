@@ -17,9 +17,9 @@ export type ChatMessage = {
   color?: string;
 };
 
-// ============================================================
 // #endregion
-// ============================================================
+
+
 
 // ============================================================
 // #region 聊天室用户 ID
@@ -97,7 +97,7 @@ export const chatUsers: ChatUser[] = [
 // #region 通用聊天室评论
 // ============================================================
 
-export type ChatTimePeriod = "early-morning" | "morning" | "afternoon" | "evening";
+export type ChatTimePeriod = "midnight" | "morning" | "afternoon" | "evening";
 
 export const morningChatComments: string[] = [
   "早上好，新的一天一起加油",
@@ -182,7 +182,7 @@ export const eveningChatComments: string[] = [
   "收到今晚的陪伴信号",
 ];
 
-export const earlyMorningChatComments: string[] = [
+export const midnightChatComments: string[] = [
   "凌晨好，还在努力的人辛苦啦",
   "夜深了，完成这一小段就早点休息吧",
   "凌晨打卡，安静陪你一会儿",
@@ -210,23 +210,20 @@ export const earlyMorningChatComments: string[] = [
 ];
 
 
-export const chatComments: Record<ChatTimePeriod, readonly string[]> = {
-  "early-morning": earlyMorningChatComments,
-  morning: morningChatComments,
-  afternoon: afternoonChatComments,
-  evening: eveningChatComments,
-};
-
 export function getChatTimePeriod(date = new Date()): ChatTimePeriod {
   const hour = date.getHours();
   if (hour >= 6 && hour < 12) return "morning";
   if (hour >= 12 && hour < 18) return "afternoon";
   if (hour >= 18) return "evening";
-  return "early-morning";
+  return "midnight";
 }
 
 export function getCurrentChatComments(date = new Date()) {
-  return chatComments[getChatTimePeriod(date)];
+  const period = getChatTimePeriod(date);
+  if (period === "morning") return morningChatComments;
+  if (period === "afternoon") return afternoonChatComments;
+  if (period === "evening") return eveningChatComments;
+  return midnightChatComments;
 }
 
 // #endregion
