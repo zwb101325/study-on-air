@@ -106,7 +106,7 @@ const danmakuSpeedOptions = [
 ] as const;
 
 const defaultMirrored = true;
-const defaultGrowthInterval = 5;
+const defaultGrowthInterval = 10;
 const defaultCommentInterval = 3;
 
 function CameraGlyph() {
@@ -717,8 +717,7 @@ export default function Home() {
                     "--duration": `${item.duration}s`,
                   } as DanmakuStyle}
                 >
-                  <strong style={{ color: item.color ?? "#ff8db2" }}>{item.user}</strong>
-                  <span>：{item.text}</span>
+                  <span>{item.text}</span>
                 </div>
               ))}
             </div>
