@@ -105,6 +105,10 @@ const danmakuSpeedOptions = [
   { label: "极快", factor: 1.75 },
 ] as const;
 
+const defaultMirrored = true;
+const defaultGrowthInterval = 5;
+const defaultCommentInterval = 3;
+
 function CameraGlyph() {
   return (
     <span className="camera-glyph" aria-hidden="true">
@@ -135,7 +139,7 @@ export default function Home() {
   const [isLive, setIsLive] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [micOn, setMicOn] = useState(true);
-  const [mirrored, setMirrored] = useState(true);
+  const [mirrored, setMirrored] = useState(defaultMirrored);
   const [volume, setVolume] = useState(0.65);
   const [isMuted, setIsMuted] = useState(true);
   const [volumeOpen, setVolumeOpen] = useState(false);
@@ -155,8 +159,8 @@ export default function Home() {
   const [avatarHint, setAvatarHint] = useState("JPG、PNG、WebP，最大 5MB");
   const [category, setCategory] = useState("日常 / 陪伴");
   const [viewerCount, setViewerCount] = useState(1284);
-  const [commentInterval, setCommentInterval] = useState(3);
-  const [growthInterval, setGrowthInterval] = useState(0);
+  const [commentInterval, setCommentInterval] = useState(defaultCommentInterval);
+  const [growthInterval, setGrowthInterval] = useState(defaultGrowthInterval);
   const [elapsed, setElapsed] = useState(0);
   const [messages, setMessages] = useState(initialMessages);
   const [showWelcome, setShowWelcome] = useState(true);
@@ -573,8 +577,8 @@ export default function Home() {
                           setAvatarHint("JPG、PNG、WebP，最大 5MB");
                           setCategory("日常 / 陪伴");
                           setViewerCount(1284);
-                          setCommentInterval(3);
-                          setGrowthInterval(0);
+                          setCommentInterval(defaultCommentInterval);
+                          setGrowthInterval(defaultGrowthInterval);
                         }}
                       >
                         恢复默认
@@ -770,9 +774,17 @@ export default function Home() {
                   </button>
                   {volumeOpen && (
                     <div className="volume-popover">
-                      <button onClick={toggleVolume}>{isMuted || volume === 0 ? "取消静音" : "静音"}</button>
+                      <button
+                        className="volume-value"
+                        onClick={toggleVolume}
+                        aria-label={isMuted || volume === 0 ? "取消静音" : "静音"}
+                        title={isMuted || volume === 0 ? "取消静音" : "静音"}
+                      >
+                        {Math.round((isMuted ? 0 : volume) * 100)}
+                      </button>
                       <input
                         aria-label="直播音量"
+                        aria-orientation="vertical"
                         type="range"
                         min="0"
                         max="1"
@@ -784,7 +796,6 @@ export default function Home() {
                           setIsMuted(nextVolume === 0);
                         }}
                       />
-                      <span>{Math.round((isMuted ? 0 : volume) * 100)}%</span>
                     </div>
                   )}
                 </div>
