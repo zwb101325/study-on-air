@@ -1,12 +1,8 @@
 import type { RefObject } from "react";
 import { useCallback, useEffect, useRef } from "react";
-import {
-  lightFocusComments,
-  longFocusComments,
-  mediumFocusComments,
-  personAwayComments,
-  welcomeStudyComments,
-} from "./chat-data";
+import { shortFocusComments, longFocusComments, mediumFocusComments, personAwayComments, welcomeComments } from "./chat-data";
+
+
 
 // ============================================================
 // #region 场景规则与类型
@@ -16,14 +12,12 @@ const mediaPipeVersion = "0.10.35";
 const mediaPipeWasmRoot = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${mediaPipeVersion}/wasm`;
 const detectionIntervalMs = 2500;
 const personMissingTriggerMs = 10_000;
-const tenMinutesInSeconds = 10 * 60;
-const twentyMinutesInSeconds = 20 * 60;
-const thirtyMinutesInSeconds = 30 * 60;
+
 
 export type SceneCommentKind =
   | "person-away"
   | "welcome"
-  | "light-focus"
+  | "short-focus"
   | "medium-focus"
   | "long-focus";
 
@@ -56,9 +50,9 @@ type PersonDetector = {
   close(): void;
 };
 
-// ============================================================
 // #endregion
-// ============================================================
+
+
 
 // ============================================================
 // #region 评论选择
@@ -79,12 +73,7 @@ function createSceneMemory(): SceneMemory {
  * 根据当前画面和学习时间选择优先级最高的评论。
  * 人物连续离开超过 10 秒时始终返回询问弹幕；人物回来后按学习时长返回对应分区。
  */
-export function selectBestSceneComment({
-  isLive,
-  elapsed,
-  now,
-  memory,
-}: SceneSnapshot): SceneCommentDecision | null {
+export function selectBestSceneComment({isLive, elapsed, now, memory}: SceneSnapshot): SceneCommentDecision | null {
   if (!isLive) return null;
 
   const personMissingLongEnough =
@@ -99,21 +88,21 @@ export function selectBestSceneComment({
     };
   }
 
-  if (elapsed < tenMinutesInSeconds) {
+  if (elapsed < 10 * 60) {
     return {
       kind: "welcome",
-      text: pickRandomComment(welcomeStudyComments),
+      text: pickRandomComment(welcomeComments),
     };
   }
 
-  if (elapsed < twentyMinutesInSeconds) {
+  if (elapsed < 20 * 60) {
     return {
-      kind: "light-focus",
-      text: pickRandomComment(lightFocusComments),
+      kind: "short-focus",
+      text: pickRandomComment(shortFocusComments),
     };
   }
 
-  if (elapsed < thirtyMinutesInSeconds) {
+  if (elapsed < 30 * 60) {
     return {
       kind: "medium-focus",
       text: pickRandomComment(mediumFocusComments),
@@ -126,9 +115,9 @@ export function selectBestSceneComment({
   };
 }
 
-// ============================================================
 // #endregion
-// ============================================================
+
+
 
 // ============================================================
 // #region MediaPipe 人物检测
@@ -157,20 +146,15 @@ async function createPersonDetector(modelAssetPath: string): Promise<PersonDetec
   };
 }
 
-// ============================================================
 // #endregion
-// ============================================================
+
+
 
 // ============================================================
 // #region 场景弹幕系统 Hook
 // ============================================================
 
-export function useSceneCommentSystem({
-  isLive,
-  elapsed,
-  videoRef,
-  modelAssetPath,
-}: SceneCommentSystemOptions) {
+export function useSceneCommentSystem({ isLive, elapsed, videoRef, modelAssetPath }: SceneCommentSystemOptions) {
   const memoryRef = useRef<SceneMemory>(createSceneMemory());
   const elapsedRef = useRef(elapsed);
   const isLiveRef = useRef(isLive);
@@ -251,6 +235,4 @@ export function useSceneCommentSystem({
   return getSceneComment;
 }
 
-// ============================================================
 // #endregion
-// ============================================================
