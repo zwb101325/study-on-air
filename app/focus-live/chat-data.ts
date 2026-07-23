@@ -424,10 +424,6 @@ function createTimeBasedMessages(date = new Date()): ChatMessage[] {
   }));
 }
 
-export function getInitialMessages(date = new Date()) {
-  return createTimeBasedMessages(date).slice(0, 8);
-}
-
 export function getLiveComments(date = new Date()) {
   return createTimeBasedMessages(date).slice(8).map(({ user, text, color }) => ({
     user,

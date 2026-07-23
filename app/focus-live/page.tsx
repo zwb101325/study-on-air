@@ -9,7 +9,6 @@ import SiteHeader from "../components/SiteHeader";
 import { withBasePath } from "../base-path";
 import {
   chatUsers,
-  getInitialMessages,
   getLiveComments,
   type ChatMessage,
 } from "./chat-data";
@@ -244,13 +243,6 @@ export default function Home() {
   // ============================================================
   // #region 媒体资源生命周期与播放器状态同步
   // ============================================================
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setMessages((current) => current.length === 0 ? getInitialMessages() : current);
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     return () => {
