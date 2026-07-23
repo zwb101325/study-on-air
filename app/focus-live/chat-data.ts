@@ -94,12 +94,10 @@ export const chatUsers: ChatUser[] = [
 
 
 // ============================================================
-// #region 通用聊天室评论
+// #region 时间段评论
 // ============================================================
 
-export type ChatTimePeriod = "midnight" | "morning" | "afternoon" | "evening";
-
-export const morningChatComments: string[] = [
+export const morningComments: string[] = [
   "早上好，新的一天一起加油",
   "早起打卡，今天也要认真学习 ✨",
   "晨间直播的氛围真舒服",
@@ -124,10 +122,35 @@ export const morningChatComments: string[] = [
   "上午好，慢慢进入状态就可以",
   "第一项任务已经写在清单上了",
   "早起学习真的很有成就感",
+  "来得正好，跟着直播一起开始",
+  "今天先专注半小时试试看",
+  "窗外天气不错，心情也跟着变好了",
+  "刚打开电脑，准备进入学习状态",
+  "早上的脑子比较清醒，先啃难题",
+  "早餐吃饱了，今天应该很有精神",
+  "先把手机放远一点，认真学一会儿",
+  "今日份自习搭子已上线",
+  "看到大家都在学习，我也有动力了",
+  "上午第一轮番茄钟开始",
+  "早起不容易，给坚持的自己点个赞",
+  "今天准备把昨天没做完的补上",
+  "直播间一开，学习仪式感就有了",
+  "先列三件今天一定要完成的事",
+  "刚背完一组单词，来这里继续",
+  "早上的安静感太适合看书了",
+  "今天状态一般，也先坐下来再说",
+  "跟着主播一起把注意力拉回来",
+  "上午先完成作业，下午再复习",
+  "书和笔都准备好了，可以开始了",
+  "悄悄打卡，希望今天效率高一点",
+  "早安，屏幕前的大家都要顺利呀",
+  "第一轮学习结束再去吃点水果",
+  "开着直播学习，感觉没那么容易走神",
+  "今天也不求完美，完成计划就很好",
+  "新的专注记录从现在开始",
 ];
 
-
-export const afternoonChatComments: string[] = [
+export const afternoonComments: string[] = [
   "下午好，午后的专注时间开始啦",
   "吃完午饭回来继续打卡",
   "下午容易犯困，先伸个懒腰吧",
@@ -152,10 +175,35 @@ export const afternoonChatComments: string[] = [
   "下午的咖啡已经准备好了",
   "跟着直播间节奏慢慢推进",
   "今天还没有结束，继续加油",
+  "午饭后有点困，先从简单任务开始",
+  "下午第一轮番茄钟打卡",
+  "刚从图书馆回来，继续线上自习",
+  "看到主播在学，我也不好意思摸鱼了",
+  "今天的待办还剩一半，慢慢清掉",
+  "先整理十分钟，再开始下一项任务",
+  "午后适合补一补上午落下的进度",
+  "刚冲好咖啡，准备认真坐一会儿",
+  "下午状态回来了，继续保持",
+  "一起熬过最容易分心的时间段",
+  "我先把消息关掉，晚点再看手机",
+  "这个背景音很适合写作业",
+  "今天进度比预想中顺利一点",
+  "卡题了，先换一道题调整一下",
+  "下午还有时间，不着急，稳稳推进",
+  "第二轮学习开始，大家一起加油",
+  "坐久了记得活动一下肩颈",
+  "刚完成一项任务，来弹幕区报喜",
+  "下午的阳光有点催眠，但还能坚持",
+  "先专注二十五分钟再休息",
+  "笔记整理到一半，继续冲",
+  "今天不想卷太狠，保持节奏就好",
+  "学习搭子们下午好，我来报到了",
+  "把剩下的任务拆小一点就没那么难了",
+  "跟着直播间一起，效率真的高不少",
+  "再完成这一页就起来走一走",
 ];
 
-
-export const eveningChatComments: string[] = [
+export const eveningComments: string[] = [
   "晚上好！今天也来一起专注",
   "晚间打卡，今天的计划收个尾 ✨",
   "这个直播间的夜晚氛围真舒服",
@@ -180,9 +228,35 @@ export const eveningChatComments: string[] = [
   "咖啡续上，继续写作业",
   "完成今天的计划就早点休息吧",
   "收到今晚的陪伴信号",
+  "下班下课后还能学习，大家都很厉害",
+  "晚饭吃完了，来完成今天最后一轮",
+  "今晚先把明天要交的作业搞定",
+  "白天没进入状态，晚上来补进度",
+  "直播间开着，写东西安心多了",
+  "刚洗完澡，清清爽爽开始学习",
+  "今天还差一点点就能完成目标",
+  "晚间番茄钟第一轮开始",
+  "手机已经开免打扰，认真冲一会儿",
+  "看见大家都还在，我也继续坚持",
+  "晚上适合复盘一下今天学了什么",
+  "先做半小时，再决定要不要加时",
+  "这个灯光看着很有学习氛围",
+  "终于解决白天卡住的那道题了",
+  "今晚不熬太晚，但计划要认真完成",
+  "准备把错题整理完再去休息",
+  "学习了一天，最后一段更要稳住",
+  "夜晚安安静静的，注意力反而更集中",
+  "今天的待办只剩最后两项了",
+  "刚背完书，来弹幕区透口气",
+  "一起把今天画上一个圆满的句号",
+  "晚上容易走神，跟着主播会好很多",
+  "最后一轮专注，结束后就奖励自己",
+  "今天进度不算快，但一直没有停",
+  "明天要早起，今晚完成这页就收工",
+  "晚安之前再认真努力一会儿",
 ];
 
-export const midnightChatComments: string[] = [
+export const midnightComments: string[] = [
   "凌晨好，还在努力的人辛苦啦",
   "夜深了，完成这一小段就早点休息吧",
   "凌晨打卡，安静陪你一会儿",
@@ -207,23 +281,40 @@ export const midnightChatComments: string[] = [
   "现在的努力会慢慢积累成成果",
   "夜深了，困的时候及时休息",
   "收到凌晨的陪伴信号",
+  "还没睡的同学们都在忙什么呀",
+  "最后一个番茄钟，结束就去睡",
+  "刚赶完一部分作业，终于能喘口气了",
+  "深夜写东西真的会特别安静",
+  "别忘了保存文件，熬夜最怕白忙",
+  "眼睛有点酸了，闭眼休息一分钟",
+  "今晚进度慢一点也没关系",
+  "这个点还有人一起学习，感觉不孤单",
+  "任务没做完也别焦虑，明天还能继续",
+  "再整理两页笔记就关电脑",
+  "凌晨的键盘声听着很治愈",
+  "明早还有事的朋友别熬太久啦",
+  "已经很晚了，先保证睡眠比较重要",
+  "卡住的话先记下来，睡醒再解决",
+  "深夜打卡成功，今天也算有进步",
+  "安静看一会儿书，让心慢慢静下来",
+  "准备收尾了，大家也早点休息",
+  "刚把最后一道题做完，终于可以睡了",
+  "熬夜学习记得别一直盯着屏幕",
+  "今晚能完成多少算多少，不硬撑",
+  "夜深人静，适合做一点简单复盘",
+  "最后检查一遍今天的内容就下线",
+  "听着直播间的声音没那么困了",
+  "再写十分钟，时间一到立刻休息",
+  "辛苦啦，今天已经做得很好了",
+  "凌晨场结束后记得好好睡一觉",
 ];
 
-
-export function getChatTimePeriod(date = new Date()): ChatTimePeriod {
+export function getTimePeriodComments(date = new Date()): string[] {
   const hour = date.getHours();
-  if (hour >= 6 && hour < 12) return "morning";
-  if (hour >= 12 && hour < 18) return "afternoon";
-  if (hour >= 18) return "evening";
-  return "midnight";
-}
-
-export function getCurrentChatComments(date = new Date()) {
-  const period = getChatTimePeriod(date);
-  if (period === "morning") return morningChatComments;
-  if (period === "afternoon") return afternoonChatComments;
-  if (period === "evening") return eveningChatComments;
-  return midnightChatComments;
+  if (hour >= 6 && hour < 12) return morningComments;
+  if (hour >= 12 && hour < 18) return afternoonComments;
+  if (hour >= 18) return eveningComments;
+  return midnightComments;
 }
 
 // #endregion
@@ -323,7 +414,7 @@ export const longFocusComments: string[] = [
 // ============================================================
 
 function createTimeBasedMessages(date = new Date()): ChatMessage[] {
-  const currentComments = getCurrentChatComments(date);
+  const currentComments = getTimePeriodComments(date);
   return chatUsers.map((user, index) => ({
     id: index + 1,
     user: user.id,
