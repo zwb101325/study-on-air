@@ -201,13 +201,15 @@ button { color: inherit; }
 .live-badge { color: #8e8b98; background: #f4f2f6; font-size: 10px; padding: 4px 7px; border-radius: 7px; white-space: nowrap; }
 .live-badge.active { color: #fff; background: linear-gradient(100deg, #ff5d92, #ff7e80); box-shadow: 0 5px 13px rgba(255, 93, 146, .23); }
 .header-pills { margin-left: auto; display: flex; gap: 8px; align-items: center; }
-.follow-button { min-width: 72px; height: 34px; display: flex; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: 99px; padding: 0 15px; color: #fff; background: linear-gradient(110deg, #ff5d92, #ff7b9f); font-size: 11px; line-height: 1; cursor: pointer; box-shadow: 0 6px 15px rgba(244, 72, 130, .2); transition: transform .2s, background .2s, color .2s, border-color .2s; }
+.follow-button { min-width: 72px; height: 34px; display: flex; align-items: center; justify-content: center; gap: 4px; border: 1px solid transparent; border-radius: 99px; padding: 0 15px; color: #fff; background: linear-gradient(110deg, #ff5d92, #ff7b9f); font-size: 11px; line-height: 1; cursor: pointer; box-shadow: 0 6px 15px rgba(244, 72, 130, .2); transition: transform .2s, background .2s, color .2s, border-color .2s; }
+.follow-icon { width: 11px; height: 11px; filter: brightness(0) invert(1); }
 .follow-button:hover { transform: translateY(-1px); }
 .follow-button.following { color: #6f6977; border-color: #e8e3ec; background: #fff; box-shadow: none; }
 .follow-button.following:hover { color: #ec4f83; border-color: #ffc5d8; background: #fff6f9; }
 .settings-wrap { position: relative; }
 .settings-button { height: 34px; display: flex; align-items: center; gap: 6px; border: 1px solid #ebe7ef; border-radius: 99px; padding: 0 12px; color: #77717e; background: #fff; font-size: 11px; line-height: 1; cursor: pointer; transition: color .2s, border-color .2s, background .2s; }
-.settings-button > span:first-child { letter-spacing: 1px; color: #a29ca8; transform: translateY(-2px); }
+.settings-icon { width: 16px; height: 16px; opacity: .5; transition: opacity .2s, filter .2s; }
+.settings-button:hover .settings-icon, .settings-button.active .settings-icon { opacity: .8; filter: invert(42%) sepia(68%) saturate(1852%) hue-rotate(304deg) brightness(99%) contrast(89%); }
 .settings-button:hover, .settings-button.active { color: #ee4f84; border-color: #ffc6d9; background: #fff7fa; }
 .settings-panel { position: absolute; z-index: 20; top: calc(100% + 12px); right: -2px; width: 320px; max-height: min(640px, calc(100vh - 135px)); overflow-y: auto; overscroll-behavior: contain; padding: 16px; border: 1px solid #ebe6ef; border-radius: 16px; background: rgba(255,255,255,.98); box-shadow: 0 18px 50px rgba(68,46,79,.18); backdrop-filter: blur(18px); scrollbar-width: thin; scrollbar-color: #ded8e3 transparent; animation: settings-in .18s ease-out both; }
 .settings-panel::before { content: ""; position: absolute; top: -6px; right: 22px; width: 11px; height: 11px; border-left: 1px solid #ebe6ef; border-top: 1px solid #ebe6ef; background: #fff; transform: rotate(45deg); }
@@ -276,15 +278,11 @@ button { color: inherit; }
 .effect-castle .gift-effect-icon { animation: gift-castle-rise 1.85s cubic-bezier(.2,.75,.24,1) both; }
 .empty-stage { position: absolute; z-index: 2; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; padding: 30px; }
 .camera-orbit { width: 96px; height: 96px; display: grid; place-items: center; border-radius: 50%; margin-bottom: 24px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.11); box-shadow: 0 0 0 18px rgba(255,255,255,.025); animation: float 4s ease-in-out infinite; }
-.camera-glyph { width: 35px; height: 25px; border: 2px solid currentColor; border-radius: 7px; display: inline-grid; place-items: center; position: relative; flex: 0 0 auto; }
-.camera-glyph::after { content: ""; width: 9px; height: 12px; position: absolute; right: -8px; border: 2px solid currentColor; border-left: 0; border-radius: 0 5px 5px 0; }
-.camera-lens { width: 9px; height: 9px; border: 2px solid currentColor; border-radius: 50%; }
-.camera-orbit .camera-glyph { width: 44px; height: 31px; color: #b9b4c4; }
+.camera-orbit-icon { width: 48px; height: 38px; object-fit: contain; filter: invert(79%) sepia(8%) saturate(225%) hue-rotate(222deg) brightness(94%) contrast(89%); }
 .empty-stage h2 { font-size: clamp(21px, 2vw, 28px); margin: 0; letter-spacing: .5px; }
 .empty-stage p { color: #a9a5b2; margin: 11px 0 24px; font-size: 14px; }
 .start-button { min-width: 166px; height: 46px; display: flex; gap: 10px; align-items: center; justify-content: center; color: white; border: 0; border-radius: 14px; background: linear-gradient(110deg, #ff5d92, #f24781); box-shadow: 0 12px 28px rgba(255, 79, 139, .3); cursor: pointer; font-weight: 700; transition: transform .2s, box-shadow .2s; }
-.start-button .camera-glyph { width: 22px; height: 16px; border-width: 1.5px; border-radius: 4px; }
-.start-button .camera-lens { width: 6px; height: 6px; border-width: 1px; }
+.start-camera-icon { width: 23px; height: 18px; object-fit: contain; filter: brightness(0) invert(1); }
 .start-button:hover { transform: translateY(-2px); box-shadow: 0 16px 30px rgba(255, 79, 139, .37); }
 .start-button:disabled { opacity: .65; cursor: wait; transform: none; }
 .permission-hint { color: #6e6a77; font-size: 10px; margin-top: 13px; }
