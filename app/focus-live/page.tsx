@@ -110,14 +110,6 @@ const defaultGrowthInterval = 10;
 const defaultCommentInterval = 2;
 const defaultDanmakuSpeed = 2;
 
-function CameraGlyph() {
-  return (
-    <span className="camera-glyph" aria-hidden="true">
-      <span className="camera-lens" />
-    </span>
-  );
-}
-
 function formatDuration(seconds: number) {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
@@ -565,16 +557,24 @@ export default function Home() {
                 aria-pressed={isFollowing}
                 title={isFollowing ? "点击取消关注" : "点击关注主播"}
               >
-                {isFollowing ? "✓ 已关注" : "＋ 关注"}
+                {isFollowing ? (
+                  "✓ 已关注"
+                ) : (
+                  <>
+                    <img className="follow-icon" src={withBasePath("/icons/plus.svg")} alt="" aria-hidden="true" />
+                    关注
+                  </>
+                )}
               </button>
               <div className="settings-wrap" ref={settingsRef}>
                 <button
                   className={settingsOpen ? "settings-button active" : "settings-button"}
                   onClick={() => setSettingsOpen((value) => !value)}
                   aria-expanded={settingsOpen}
-                  aria-haspopup="dialog"
-                >
-                  <span aria-hidden="true">•••</span><span className="settings-label">更多设置</span>
+                aria-haspopup="dialog"
+              >
+                  <img className="settings-icon" src={withBasePath("/icons/more.svg")} alt="" aria-hidden="true" />
+                  <span className="settings-label">更多设置</span>
                 </button>
                 {settingsOpen && (
                   <div className="settings-panel" role="dialog" aria-label="直播间更多设置">
@@ -749,11 +749,14 @@ export default function Home() {
 
             {!isLive && (
               <div className="empty-stage">
-                <div className="camera-orbit"><CameraGlyph /></div>
+                <div className="camera-orbit">
+                  <img className="camera-orbit-icon" src={withBasePath("/icons/camera-on.svg")} alt="" aria-hidden="true" />
+                </div>
                 <h2>准备好，和大家见面了吗？</h2>
                 <p>{notice}</p>
                 <button className="start-button" onClick={startLive} disabled={isStarting}>
-                  <CameraGlyph /> {isStarting ? "正在连接…" : "开启摄像头"}
+                  <img className="start-camera-icon" src={withBasePath("/icons/camera-on.svg")} alt="" aria-hidden="true" />
+                  {isStarting ? "正在连接…" : "开启摄像头"}
                 </button>
                 <span className="permission-hint">仅在你允许后使用摄像头与麦克风</span>
               </div>
