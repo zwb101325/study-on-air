@@ -216,12 +216,11 @@ export default function Home() {
     showDanmakuRef.current(message);
   }, []);
 
-  useSceneCommentSystem({
+  const getSceneComment = useSceneCommentSystem({
     isLive,
     elapsed,
     videoRef,
     modelAssetPath: withBasePath("/models/efficientdet_lite0.tflite"),
-    onComment: emitTriggeredComment,
   });
 
   // ============================================================
@@ -295,25 +294,30 @@ export default function Home() {
     const queueNextComment = () => {
       const delay = getRandomizedIntervalMs(commentInterval);
       timeoutId = window.setTimeout(() => {
-        const next = liveComments[Math.floor(Math.random() * liveComments.length)];
-        const incomingMessage: ChatMessage = {
-          id: nextMessageId.current++,
-          user: next.user,
-          text: next.text,
-          color: next.color,
-        };
-        setMessages((current) => [
-          ...current.slice(-49),
-          incomingMessage,
-        ]);
-        showDanmaku(incomingMessage);
+        const sceneComment = getSceneComment();
+        if (sceneComment) {
+          emitTriggeredComment(sceneComment.text);
+        } else {
+          const next = liveComments[Math.floor(Math.random() * liveComments.length)];
+          const incomingMessage: ChatMessage = {
+            id: nextMessageId.current++,
+            user: next.user,
+            text: next.text,
+            color: next.color,
+          };
+          setMessages((current) => [
+            ...current.slice(-49),
+            incomingMessage,
+          ]);
+          showDanmaku(incomingMessage);
+        }
         queueNextComment();
       }, delay);
     };
 
     queueNextComment();
     return () => window.clearTimeout(timeoutId);
-  }, [commentInterval, showDanmaku]);
+  }, [commentInterval, emitTriggeredComment, getSceneComment, showDanmaku]);
 
   useEffect(() => {
     if (growthInterval === 0) return;
