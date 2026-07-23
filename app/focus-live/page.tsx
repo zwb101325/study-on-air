@@ -746,11 +746,7 @@ export default function Home() {
             )}
 
             {isLive && (
-              <>
-                <div className="live-status"><span /> LIVE</div>
-                <div className="quality-badge">1080P · 实时</div>
-                <div className="stage-notice" aria-live="polite">{notice}</div>
-              </>
+              <div className="live-status"><span /> LIVE</div>
             )}
 
             <div className={isLive ? "video-controls visible" : "video-controls"}>
@@ -910,7 +906,6 @@ export default function Home() {
         <aside className="chat-panel">
           <div className="chat-tabs">
             <button className="active">聊天室</button>
-            <button>贡献榜</button>
             <span><i /> {viewerCount.toLocaleString("zh-CN")} 人在线</span>
           </div>
           <div className="room-banner">
