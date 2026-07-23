@@ -342,7 +342,7 @@ export const personAwayComments: string[] = [
 ];
 
 // 开播 0～10 分钟使用。
-export const welcomeStudyComments: string[] = [
+export const welcomeComments: string[] = [
   "欢迎开播，今天也一起专注吧",
   "刚开始学习，先定个小目标吧",
   "新一轮专注开始啦，加油",
@@ -358,7 +358,7 @@ export const welcomeStudyComments: string[] = [
 ];
 
 // 开播 10～20 分钟使用。
-export const lightFocusComments: string[] = [
+export const shortFocusComments: string[] = [
   "已经专注十分钟啦，状态开始稳定了",
   "十分钟热身完成，继续保持这个节奏",
   "慢慢进入状态了，加油",
