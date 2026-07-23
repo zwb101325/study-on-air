@@ -11,12 +11,9 @@ import {
   chatUsers,
   initialMessages,
   liveComments,
-  personAwayComments,
-  studyEncouragementComments,
-  welcomeStudyComments,
   type ChatMessage,
 } from "./chat-data";
-import { createPersonDetector } from "./person-detector";
+import { useSceneCommentSystem } from "./scene-comment-system";
 
 // ============================================================
 // #endregion
@@ -135,8 +132,6 @@ export default function Home() {
   const nextGiftEffectId = useRef(1);
   const nextArrivalIndex = useRef(0);
   const showDanmakuRef = useRef<(message: ChatMessage) => void>(() => undefined);
-  const welcomeReactionSentRef = useRef(false);
-  const lastEncouragementMilestoneRef = useRef(0);
   const danmakuTimersRef = useRef<Set<number>>(new Set());
   const giftEffectTimersRef = useRef<Set<number>>(new Set());
   const [isLive, setIsLive] = useState(false);
@@ -207,13 +202,12 @@ export default function Home() {
     showDanmakuRef.current = showDanmaku;
   }, [showDanmaku]);
 
-  const emitTriggeredComment = useCallback((comments: readonly string[]) => {
-    if (comments.length === 0) return;
+  const emitTriggeredComment = useCallback((text: string) => {
     const user = chatUsers[Math.floor(Math.random() * chatUsers.length)];
     const message: ChatMessage = {
       id: nextMessageId.current++,
       user: user.id,
-      text: comments[Math.floor(Math.random() * comments.length)],
+      text,
       color: user.color,
       accent: user.accent,
     };
@@ -222,12 +216,20 @@ export default function Home() {
     showDanmakuRef.current(message);
   }, []);
 
+  useSceneCommentSystem({
+    isLive,
+    elapsed,
+    videoRef,
+    modelAssetPath: withBasePath("/models/efficientdet_lite0.tflite"),
+    onComment: emitTriggeredComment,
+  });
+
   // ============================================================
   // #endregion
   // ============================================================
 
   // ============================================================
-  // #region 直播计时、学习阶段与人物识别
+  // #region 直播计时
   // ============================================================
 
   useEffect(() => {
@@ -235,91 +237,6 @@ export default function Home() {
     const timer = window.setInterval(() => setElapsed((value) => value + 1), 1000);
     return () => window.clearInterval(timer);
   }, [isLive]);
-
-  useEffect(() => {
-    if (!isLive) {
-      welcomeReactionSentRef.current = false;
-      lastEncouragementMilestoneRef.current = 0;
-      return;
-    }
-
-    if (elapsed >= 5 && elapsed < 60 && !welcomeReactionSentRef.current) {
-      welcomeReactionSentRef.current = true;
-      emitTriggeredComment(welcomeStudyComments);
-    }
-
-    const completedTenMinuteBlocks = Math.floor(elapsed / 600);
-    if (
-      completedTenMinuteBlocks >= 1
-      && completedTenMinuteBlocks > lastEncouragementMilestoneRef.current
-    ) {
-      lastEncouragementMilestoneRef.current = completedTenMinuteBlocks;
-      emitTriggeredComment(studyEncouragementComments);
-    }
-  }, [elapsed, emitTriggeredComment, isLive]);
-
-  useEffect(() => {
-    if (!isLive) return;
-
-    let cancelled = false;
-    let detector: Awaited<ReturnType<typeof createPersonDetector>> | null = null;
-    let detectionTimer: number | undefined;
-    let missingSince: number | null = null;
-    let cooldownUntil = 0;
-
-    const scheduleDetection = () => {
-      detectionTimer = window.setTimeout(runDetection, 2500);
-    };
-
-    const runDetection = () => {
-      if (cancelled) return;
-      const video = videoRef.current;
-
-      if (detector && video && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && !video.paused) {
-        const now = Date.now();
-        try {
-          const hasPerson = detector.detect(video, performance.now());
-          if (hasPerson) {
-            missingSince = null;
-          } else {
-            missingSince ??= now;
-            if (now - missingSince >= 8000 && now >= cooldownUntil) {
-              emitTriggeredComment(personAwayComments);
-              cooldownUntil = now + 45_000;
-              missingSince = now;
-            }
-          }
-        } catch (error) {
-          console.warn("人物检测暂时不可用", error);
-        }
-      }
-
-      scheduleDetection();
-    };
-
-    const startDetection = async () => {
-      try {
-        detector = await createPersonDetector(
-          withBasePath("/models/efficientdet_lite0.tflite"),
-        );
-        if (cancelled) {
-          detector.close();
-          return;
-        }
-        runDetection();
-      } catch (error) {
-        console.warn("人物检测初始化失败", error);
-      }
-    };
-
-    void startDetection();
-
-    return () => {
-      cancelled = true;
-      if (detectionTimer !== undefined) window.clearTimeout(detectionTimer);
-      detector?.close();
-    };
-  }, [emitTriggeredComment, isLive]);
 
   // ============================================================
   // #endregion
