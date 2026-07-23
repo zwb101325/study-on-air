@@ -92,6 +92,7 @@ const defaultMirrored = true;
 const defaultGrowthInterval = 10;
 const defaultCommentInterval = 2;
 const defaultDanmakuSpeed = 2;
+const spotifyEmbedKinds = new Set(["track", "album", "playlist", "artist", "episode", "show"]);
 
 // ============================================================
 // #endregion
@@ -110,6 +111,29 @@ function formatDuration(seconds: number) {
 
 function getRandomizedIntervalMs(seconds: number) {
   return seconds * 1000 * (0.8 + Math.random() * 0.4);
+}
+
+function getSpotifyEmbedUrl(value: string) {
+  const input = value.trim();
+  const spotifyUri = input.match(/^spotify:(track|album|playlist|artist|episode|show):([a-zA-Z0-9]+)$/);
+  if (spotifyUri) {
+    return `https://open.spotify.com/embed/${spotifyUri[1]}/${spotifyUri[2]}?utm_source=generator&theme=0`;
+  }
+
+  try {
+    const url = new URL(input);
+    if (url.protocol !== "https:" || url.hostname !== "open.spotify.com") return null;
+
+    const segments = url.pathname.split("/").filter(Boolean);
+    if (segments[0]?.startsWith("intl-")) segments.shift();
+    if (segments[0] === "embed") segments.shift();
+
+    const [kind, id] = segments;
+    if (!spotifyEmbedKinds.has(kind) || !/^[a-zA-Z0-9]+$/.test(id ?? "")) return null;
+    return `https://open.spotify.com/embed/${kind}/${id}?utm_source=generator&theme=0`;
+  } catch {
+    return null;
+  }
 }
 
 // ============================================================
@@ -163,6 +187,10 @@ export default function Home() {
   const showWelcome = messages.filter((message) => message.id >= 20).length < 3;
   const [danmakuItems, setDanmakuItems] = useState<DanmakuItem[]>([]);
   const [giftEffects, setGiftEffects] = useState<GiftEffect[]>([]);
+  const [dockView, setDockView] = useState<"gifts" | "spotify">("gifts");
+  const [spotifyInput, setSpotifyInput] = useState("");
+  const [spotifyEmbedUrl, setSpotifyEmbedUrl] = useState<string | null>(null);
+  const [spotifyError, setSpotifyError] = useState("");
   const [draft, setDraft] = useState("");
   const [autoFollow, setAutoFollow] = useState(true);
   const [notice, setNotice] = useState("点击下方按钮，开启你的实时画面");
@@ -589,6 +617,18 @@ export default function Home() {
     giftEffectTimersRef.current.add(timerId);
   };
 
+  const loadSpotifyPlayer = (event: FormEvent) => {
+    event.preventDefault();
+    const embedUrl = getSpotifyEmbedUrl(spotifyInput);
+    if (!embedUrl) {
+      setSpotifyError("请粘贴有效的 Spotify 歌曲、专辑或播放列表链接");
+      return;
+    }
+
+    setSpotifyEmbedUrl(embedUrl);
+    setSpotifyError("");
+  };
+
   const sendMessage = (event: FormEvent) => {
     event.preventDefault();
     const text = draft.trim();
@@ -995,25 +1035,87 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="gift-dock">
+          <div className={dockView === "spotify" ? "gift-dock spotify-mode" : "gift-dock"}>
             <div className="dock-intro">
-              <span className="dock-icon">✦</span>
-              <div><strong>为喜欢发电</strong><small>选择一份心意</small></div>
+              <span className={dockView === "spotify" ? "dock-icon spotify" : "dock-icon"}>
+                {dockView === "spotify" ? "♫" : "✦"}
+              </span>
+              <div>
+                <strong>{dockView === "spotify" ? "Spotify 点歌台" : "为喜欢发电"}</strong>
+                <small>{dockView === "spotify" ? "粘贴链接开始播放" : "选择一份心意"}</small>
+              </div>
             </div>
-            <div className="gift-list">
-              {gifts.map((gift) => (
-                <button
-                  className="gift-item"
-                  key={gift.name}
-                  title={`赠送${gift.name}`}
-                  aria-label={`赠送${gift.name}，${gift.price}`}
-                  onClick={() => triggerGiftEffect(gift)}
-                >
-                  <span>{gift.icon}</span><strong>{gift.name}</strong><small>{gift.price}</small>
-                </button>
-              ))}
+            <div className="dock-tabs" role="tablist" aria-label="礼品区功能">
+              <button
+                className={dockView === "gifts" ? "dock-tab active" : "dock-tab"}
+                type="button"
+                role="tab"
+                aria-selected={dockView === "gifts"}
+                onClick={() => setDockView("gifts")}
+              >
+                <span aria-hidden="true">🎁</span>礼物
+              </button>
+              <button
+                className={dockView === "spotify" ? "dock-tab spotify active" : "dock-tab spotify"}
+                type="button"
+                role="tab"
+                aria-selected={dockView === "spotify"}
+                onClick={() => setDockView("spotify")}
+              >
+                <span aria-hidden="true">♫</span>音乐
+              </button>
             </div>
-            <div className="wallet"><span>星糖</span><strong>2,520</strong><button>＋</button></div>
+            {dockView === "gifts" ? (
+              <>
+                <div className="gift-list" role="tabpanel">
+                  {gifts.map((gift) => (
+                    <button
+                      className="gift-item"
+                      key={gift.name}
+                      title={`赠送${gift.name}`}
+                      aria-label={`赠送${gift.name}，${gift.price}`}
+                      onClick={() => triggerGiftEffect(gift)}
+                    >
+                      <span>{gift.icon}</span><strong>{gift.name}</strong><small>{gift.price}</small>
+                    </button>
+                  ))}
+                </div>
+                <div className="wallet"><span>星糖</span><strong>2,520</strong><button>＋</button></div>
+              </>
+            ) : (
+              <div className="spotify-panel" role="tabpanel">
+                <form className="spotify-form" onSubmit={loadSpotifyPlayer}>
+                  <input
+                    type="url"
+                    value={spotifyInput}
+                    onChange={(event) => {
+                      setSpotifyInput(event.target.value);
+                      if (spotifyError) setSpotifyError("");
+                    }}
+                    placeholder="粘贴 open.spotify.com 链接"
+                    aria-label="Spotify 链接"
+                    spellCheck={false}
+                  />
+                  <button type="submit" disabled={!spotifyInput.trim()}>载入</button>
+                  {spotifyError && <span className="spotify-error" role="alert">{spotifyError}</span>}
+                </form>
+                {spotifyEmbedUrl ? (
+                  <iframe
+                    className="spotify-player"
+                    src={spotifyEmbedUrl}
+                    title="Spotify 音乐播放器"
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    loading="lazy"
+                    allowFullScreen
+                  />
+                ) : (
+                  <div className="spotify-placeholder">
+                    <span aria-hidden="true">♫</span>
+                    <div><strong>把想听的音乐带进直播间</strong><small>支持歌曲、专辑、播放列表与播客</small></div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

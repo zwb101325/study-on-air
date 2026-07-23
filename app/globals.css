@@ -177,18 +177,17 @@ button { color: inherit; }
 .session-card > footer span::before { content: "✓"; margin-right: 5px; color: var(--scene-accent); }
 
 .room-layout {
-  width: min(1720px, calc(100% - 48px));
-  min-height: calc(100vh - 104px);
+  width: min(1720px, calc(100% - 48px), max(720px, calc(177.7778vh - 119px)));
   margin: 18px auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 354px;
   gap: 14px;
-  align-items: start;
+  align-items: stretch;
   position: relative;
   z-index: 2;
 }
 .room-main, .chat-panel { background: var(--panel); border: 1px solid rgba(229, 225, 236, .95); box-shadow: 0 18px 60px rgba(83, 64, 111, .10); }
-.room-main { border-radius: 19px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; min-height: 0; height: calc(100vh - 104px); max-height: calc(100vh - 104px); }
+.room-main { border-radius: 19px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .room-header { min-height: 82px; flex: 0 0 auto; padding: 13px 18px; display: flex; align-items: center; gap: 13px; }
 .host-avatar { position: relative; flex: 0 0 auto; width: 50px; height: 50px; display: grid; place-items: center; border-radius: 50%; color: white; font-size: 19px; font-weight: 800; background: linear-gradient(145deg, #ff97b8 0%, #b89afd 100%); border: 3px solid white; box-shadow: 0 3px 13px rgba(85, 63, 118, .18); }
 .host-avatar > img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
@@ -249,7 +248,7 @@ button { color: inherit; }
 .speed-field input { width: 100%; margin: 13px 0 4px; accent-color: #ff5d92; cursor: pointer; }
 .speed-scale { display: flex; justify-content: space-between; color: #aaa4af; font-size: 9px; }
 
-.video-stage { position: relative; flex: 1 1 0; min-height: 0; max-height: none; overflow: hidden; background: radial-gradient(circle at 50% 48%, #353342 0%, #211f28 55%, #19171d 100%); }
+.video-stage { position: relative; width: 100%; flex: 0 0 auto; aspect-ratio: 16 / 9; min-height: 0; max-height: none; overflow: hidden; background: radial-gradient(circle at 50% 48%, #353342 0%, #211f28 55%, #19171d 100%); }
 .video-stage:fullscreen { max-height: none; width: 100vw; height: 100vh; aspect-ratio: auto; }
 .video-stage::before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,.08) 1px, transparent 1px); background-size: 24px 24px; mask-image: linear-gradient(to bottom, transparent, #000 25%, #000 75%, transparent); }
 .camera-feed { width: 100%; height: 100%; object-fit: cover; display: block; position: relative; z-index: 1; }
@@ -325,12 +324,21 @@ button { color: inherit; }
 .end-button.compact { height: 30px; margin-left: 4px; padding: 0 10px; background: rgba(255,73,115,.78); }
 .spinning { animation: control-spin .8s linear infinite; }
 
-.gift-dock { min-height: 88px; flex: 0 0 auto; display: flex; align-items: center; padding: 10px 16px; gap: 18px; background: #fff; }
+.gift-dock { min-height: 88px; flex: 0 0 auto; display: flex; align-items: center; padding: 10px 16px; gap: 12px; background: #fff; }
+.gift-dock.spotify-mode { padding-block: 4px; }
 .dock-intro { display: flex; align-items: center; gap: 9px; min-width: 134px; }
 .dock-icon { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 11px; color: #fb548a; background: #fff0f5; }
+.dock-icon.spotify { color: #fff; background: linear-gradient(145deg, #34d86b, #159447); box-shadow: 0 6px 14px rgba(29,185,84,.2); }
 .dock-intro strong, .dock-intro small { display: block; }
 .dock-intro strong { font-size: 12px; }
 .dock-intro small { color: #a29eaa; font-size: 9px; margin-top: 3px; }
+.dock-tabs { flex: 0 0 auto; display: grid; gap: 4px; padding: 3px; border-radius: 12px; background: #f6f3f7; }
+.dock-tab { height: 28px; display: flex; align-items: center; justify-content: center; gap: 4px; border: 0; border-radius: 9px; padding: 0 8px; color: #8f8995; background: transparent; font-size: 9px; font-weight: 700; cursor: pointer; transition: color .18s, background .18s, box-shadow .18s; }
+.dock-tab span { font-size: 11px; }
+.dock-tab:hover { color: #ec4f83; background: #fff; }
+.dock-tab.active { color: #fff; background: linear-gradient(110deg, #ff5d92, #ff78a0); box-shadow: 0 4px 10px rgba(255,93,146,.2); }
+.dock-tab.spotify:hover { color: #168b45; }
+.dock-tab.spotify.active { color: #fff; background: linear-gradient(135deg, #2dcc64, #159447); box-shadow: 0 4px 10px rgba(29,185,84,.2); }
 .gift-list { display: flex; align-items: center; justify-content: flex-start; flex: 1; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
 .gift-list::-webkit-scrollbar { display: none; }
 .gift-item { border: 0; background: transparent; min-width: 94px; padding: 3px 9px; border-radius: 12px; cursor: pointer; transition: background .18s, transform .18s; }
@@ -345,8 +353,23 @@ button { color: inherit; }
 .wallet span { grid-column: 1 / -1; color: #a29eaa; font-size: 9px; }
 .wallet strong { font-size: 12px; margin-top: 2px; }
 .wallet button { border: 0; width: 21px; height: 21px; color: white; border-radius: 7px; background: #ff5d92; cursor: pointer; }
+.spotify-panel { min-width: 0; flex: 1; display: grid; grid-template-columns: minmax(235px, .75fr) minmax(280px, 1.25fr); align-items: center; gap: 10px; }
+.spotify-form { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-content: center; gap: 3px 6px; }
+.spotify-form input { min-width: 0; width: 100%; height: 38px; border: 1px solid #e6e1e9; border-radius: 11px; padding: 0 11px; outline: 0; color: #5e5863; background: #faf8fb; font-size: 10px; transition: border-color .18s, box-shadow .18s; }
+.spotify-form input::placeholder { color: #aaa4af; }
+.spotify-form input:focus { border-color: #55c979; box-shadow: 0 0 0 3px rgba(29,185,84,.1); }
+.spotify-form button { height: 38px; border: 0; border-radius: 11px; padding: 0 14px; color: #fff; background: linear-gradient(135deg, #2dcc64, #159447); font-size: 10px; font-weight: 750; cursor: pointer; box-shadow: 0 5px 12px rgba(29,185,84,.18); }
+.spotify-form button:disabled { color: #aaa5af; background: #ece9ee; box-shadow: none; cursor: default; }
+.spotify-error { grid-column: 1 / -1; min-height: 10px; padding-left: 3px; color: #e64f78; font-size: 8px; line-height: 1.25; }
+.spotify-player, .spotify-placeholder { width: 100%; height: 80px; border: 0; border-radius: 12px; }
+.spotify-player { display: block; background: #191414; }
+.spotify-placeholder { display: flex; align-items: center; justify-content: center; gap: 10px; border: 1px dashed #dcd6df; color: #817a86; background: linear-gradient(120deg, #faf8fb, #f4fbf6); }
+.spotify-placeholder > span { width: 30px; height: 30px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 50%; color: #fff; background: #1db954; box-shadow: 0 5px 12px rgba(29,185,84,.2); font-size: 15px; }
+.spotify-placeholder strong, .spotify-placeholder small { display: block; }
+.spotify-placeholder strong { font-size: 10px; }
+.spotify-placeholder small { margin-top: 4px; color: #aaa4af; font-size: 8px; }
 
-.chat-panel { border-radius: 19px; overflow: hidden; display: flex; flex-direction: column; min-height: 0; height: calc(100vh - 104px); max-height: calc(100vh - 104px); }
+.chat-panel { border-radius: 19px; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
 .chat-tabs { height: 58px; display: flex; align-items: center; border-bottom: 1px solid var(--line); padding: 0 15px; gap: 19px; }
 .chat-tabs button { height: 100%; padding: 0 1px; border: 0; background: transparent; color: #96929e; font-size: 12px; cursor: pointer; position: relative; }
 .chat-tabs button.active { color: var(--ink); font-weight: 800; }
@@ -406,7 +429,8 @@ button { color: inherit; }
   .home-hero { grid-template-columns: minmax(0, .9fr) minmax(420px, 1.1fr); gap: 36px; }
   .space-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .space-card { min-height: 285px; }
-  .room-layout { grid-template-columns: minmax(0, 1fr) 310px; width: calc(100% - 28px); }
+  .room-layout { grid-template-columns: minmax(0, 1fr) 310px; width: min(calc(100% - 28px), max(680px, calc(177.7778vh - 163px))); }
+  .dock-intro { display: none; }
   .gift-item { min-width: 78px; }
   .video-stage { min-height: 0; }
 }
@@ -444,7 +468,11 @@ button { color: inherit; }
   .title-row h1 { font-size: 14px; }
   .video-stage { flex: none; min-height: auto; max-height: none; aspect-ratio: 16 / 9; }
   .gift-dock { min-height: 78px; padding: 8px 10px; gap: 8px; }
+  .gift-dock.spotify-mode { display: block; padding: 8px 10px 10px; }
   .dock-intro, .wallet { display: none; }
+  .spotify-mode .dock-tabs { display: flex; width: max-content; margin-bottom: 8px; }
+  .spotify-panel { grid-template-columns: 1fr; gap: 8px; }
+  .spotify-player, .spotify-placeholder { height: 152px; }
   .gift-item { min-width: 74px; }
   .chat-panel { margin-top: 10px; height: 520px; max-height: 520px; border-radius: 16px; }
 }
@@ -485,13 +513,14 @@ button { color: inherit; }
   .settings-panel::before { right: 20px; }
   .room-header { gap: 9px; }
   .room-copy p { font-size: 10px; }
-  .video-stage { aspect-ratio: 4 / 3; }
   .empty-stage { padding: 18px; }
   .camera-orbit { width: 75px; height: 75px; margin-bottom: 18px; }
   .empty-stage h2 { font-size: 18px; }
   .empty-stage p { font-size: 11px; margin-bottom: 18px; }
   .gift-list { justify-content: flex-start; }
   .gift-item { min-width: 72px; }
+  .dock-tab { padding-inline: 7px; }
+  .spotify-placeholder { padding-inline: 14px; justify-content: flex-start; }
   .video-controls { padding-inline: 8px; }
   .control-left, .control-right { gap: 1px; }
   .control-button { width: 30px; height: 32px; }
