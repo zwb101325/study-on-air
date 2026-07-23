@@ -3,15 +3,7 @@
 import { ChangeEvent, CSSProperties, FormEvent, useEffect, useRef, useState } from "react";
 import SiteHeader from "../components/SiteHeader";
 import { withBasePath } from "../base-path";
-
-type ChatMessage = {
-  id: number;
-  user: string;
-  text: string;
-  accent?: boolean;
-  joined?: boolean;
-  color?: string;
-};
+import { initialMessages, liveComments, type ChatMessage } from "./chat-data";
 
 type DanmakuItem = ChatMessage & {
   barrageId: number;
@@ -49,40 +41,6 @@ type GiftEffectStyle = CSSProperties & {
 type GiftParticleStyle = CSSProperties & {
   "--particle-angle": string;
 };
-
-const initialMessages: ChatMessage[] = [
-  { id: 1, user: "柚子汽水", text: "晚上好！今天播什么呀？", color: "#8b72d7" },
-  { id: 2, user: "bili_70241986", text: "前排坐好，等开播 ✨", color: "#5b8fd1" },
-  { id: 3, user: "南方来信·第七页", text: "这个直播间也太舒服了", color: "#b05eac" },
-  { id: 4, user: "NeoCat", text: "声音很清楚～", color: "#2c9d8a" },
-  { id: 5, user: "橘猫团长", text: "分享直播间，叫朋友一起来！", accent: true },
-  { id: 6, user: "晚风收藏家协会会长", text: "来啦来啦，今晚不走了", color: "#d0783f" },
-  { id: 7, user: "汽水半糖", text: "给主播点个关注 💗", color: "#df5f91" },
-  { id: 8, user: "一颗小星星", text: "画面好有氛围感", color: "#6f7fc8" },
-];
-
-const liveComments = [
-  { user: "云朵面包", text: "刚进来，先和大家打个招呼 👋", color: "#8b72d7" },
-  { user: "蓝莓星球", text: "主播晚上好，今天也来陪你啦", color: "#5c83ce" },
-  { user: "白桃乌龙", text: "这个画面好清晰！", color: "#d45f91" },
-  { user: "北极甜虾", text: "默默蹲在直播间听你聊天", color: "#9b6cc0" },
-  { user: "奶油小熊", text: "已分享给朋友，一起来玩～", color: "#c87242" },
-  { user: "银河便利店", text: "今天的氛围也太温柔了吧", color: "#5487b8" },
-  { user: "海盐芝士", text: "送你一颗小星星 ✨", color: "#289b89" },
-  { user: "春日来信", text: "第一次来，已经点关注啦", color: "#b75a9c" },
-  { user: "草莓软糖", text: "弹幕打卡！大家晚上好", color: "#e05e7d" },
-  { user: "毛绒月亮", text: "边做作业边听，陪伴感满满", color: "#7768c6" },
-  { user: "bili_92602771446", text: "刚下课就赶来直播间啦", color: "#4c86be" },
-  { user: "今天也要早睡呀", text: "主播记得喝水～", color: "#cd654f" },
-  { user: "雾岛听风", text: "这个直播间的颜色真好看", color: "#6577bd" },
-  { user: "一颗柠檬薄荷糖", text: "已开启后台陪伴模式", color: "#249a79" },
-  { user: "Rin", text: "打卡！", color: "#c15fa6" },
-  { user: "星河漫游指南第42页", text: "从推荐页来的，先关注一下", color: "#9a68c8" },
-  { user: "小岛", text: "晚上好呀", color: "#dd6b8d" },
-  { user: "纸飞机飞过晚霞", text: "今天也准时见面了", color: "#d07c3e" },
-  { user: "user_0x7F", text: "画质很稳，点赞", color: "#3e91a5" },
-  { user: "住在月亮背面的人", text: "安静听你聊天就很开心", color: "#765fc2" },
-];
 
 const gifts: Gift[] = [
   { icon: "🌷", name: "小花花", price: "1 星糖", effect: "bloom", color: "#ff6f9f" },
