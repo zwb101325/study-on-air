@@ -9,8 +9,8 @@ import SiteHeader from "../components/SiteHeader";
 import { withBasePath } from "../base-path";
 import {
   chatUsers,
-  initialMessages,
-  liveComments,
+  getInitialMessages,
+  getLiveComments,
   type ChatMessage,
 } from "./chat-data";
 import { useSceneCommentSystem } from "./scene-comment-system";
@@ -160,7 +160,7 @@ export default function Home() {
   const [commentInterval, setCommentInterval] = useState(defaultCommentInterval);
   const [growthInterval, setGrowthInterval] = useState(defaultGrowthInterval);
   const [elapsed, setElapsed] = useState(0);
-  const [messages, setMessages] = useState(initialMessages);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const showWelcome = messages.filter((message) => message.id >= 20).length < 3;
   const [danmakuItems, setDanmakuItems] = useState<DanmakuItem[]>([]);
   const [giftEffects, setGiftEffects] = useState<GiftEffect[]>([]);
@@ -246,6 +246,13 @@ export default function Home() {
   // ============================================================
 
   useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setMessages((current) => current.length === 0 ? getInitialMessages() : current);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     return () => {
       streamRef.current?.getTracks().forEach((track) => track.stop());
       danmakuTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
@@ -298,6 +305,7 @@ export default function Home() {
         if (sceneComment) {
           emitTriggeredComment(sceneComment.text);
         } else {
+          const liveComments = getLiveComments();
           const next = liveComments[Math.floor(Math.random() * liveComments.length)];
           const incomingMessage: ChatMessage = {
             id: nextMessageId.current++,
@@ -326,6 +334,7 @@ export default function Home() {
     const queueNextViewer = () => {
       const delay = getRandomizedIntervalMs(growthInterval);
       timeoutId = window.setTimeout(() => {
+        const liveComments = getLiveComments();
         const newcomer = liveComments[nextArrivalIndex.current % liveComments.length];
         nextArrivalIndex.current += 1;
         const arrivalMessage: ChatMessage = {
