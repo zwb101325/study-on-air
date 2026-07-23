@@ -1,5 +1,9 @@
 "use client";
 
+// ============================================================
+// #region 模块导入
+// ============================================================
+
 import { ChangeEvent, CSSProperties, FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import SiteHeader from "../components/SiteHeader";
 import { withBasePath } from "../base-path";
@@ -13,6 +17,14 @@ import {
   type ChatMessage,
 } from "./chat-data";
 import { createPersonDetector } from "./person-detector";
+
+// ============================================================
+// #endregion
+// ============================================================
+
+// ============================================================
+// #region 类型定义
+// ============================================================
 
 type DanmakuItem = ChatMessage & {
   barrageId: number;
@@ -51,6 +63,14 @@ type GiftParticleStyle = CSSProperties & {
   "--particle-angle": string;
 };
 
+// ============================================================
+// #endregion
+// ============================================================
+
+// ============================================================
+// #region 礼物、弹幕选项与默认配置
+// ============================================================
+
 const gifts: Gift[] = [
   { icon: "🌷", name: "小花花", price: "1 星糖", effect: "bloom", color: "#ff6f9f" },
   { icon: "💌", name: "心动来信", price: "5 星糖", effect: "letter", color: "#ff5f8f" },
@@ -77,6 +97,14 @@ const defaultGrowthInterval = 10;
 const defaultCommentInterval = 2;
 const defaultDanmakuSpeed = 2;
 
+// ============================================================
+// #endregion
+// ============================================================
+
+// ============================================================
+// #region 通用工具函数
+// ============================================================
+
 function formatDuration(seconds: number) {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
@@ -88,7 +116,15 @@ function getRandomizedIntervalMs(seconds: number) {
   return seconds * 1000 * (0.8 + Math.random() * 0.4);
 }
 
+// ============================================================
+// #endregion
+// ============================================================
+
 export default function Home() {
+  // ============================================================
+  // #region React 引用与页面状态
+  // ============================================================
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -138,6 +174,14 @@ export default function Home() {
   const [notice, setNotice] = useState("点击下方按钮，开启你的实时画面");
   const [isStarting, setIsStarting] = useState(false);
 
+  // ============================================================
+  // #endregion
+  // ============================================================
+
+  // ============================================================
+  // #region 弹幕创建与情境评论触发
+  // ============================================================
+
   const showDanmaku = useCallback((message: ChatMessage) => {
     const barrageId = nextDanmakuId.current++;
     const trackCount = Math.max(1, Math.min(8, Math.round(danmakuDisplayArea / 12.5)));
@@ -177,6 +221,14 @@ export default function Home() {
     setMessages((current) => [...current.slice(-49), message]);
     showDanmakuRef.current(message);
   }, []);
+
+  // ============================================================
+  // #endregion
+  // ============================================================
+
+  // ============================================================
+  // #region 直播计时、学习阶段与人物识别
+  // ============================================================
 
   useEffect(() => {
     if (!isLive) return;
@@ -269,6 +321,14 @@ export default function Home() {
     };
   }, [emitTriggeredComment, isLive]);
 
+  // ============================================================
+  // #endregion
+  // ============================================================
+
+  // ============================================================
+  // #region 媒体资源生命周期与播放器状态同步
+  // ============================================================
+
   useEffect(() => {
     return () => {
       streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -302,6 +362,14 @@ export default function Home() {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
   }, []);
+
+  // ============================================================
+  // #endregion
+  // ============================================================
+
+  // ============================================================
+  // #region 自动评论与直播间观众增长
+  // ============================================================
 
   useEffect(() => {
     if (commentInterval === 0) return;
@@ -357,6 +425,14 @@ export default function Home() {
     return () => window.clearTimeout(timeoutId);
   }, [growthInterval]);
 
+  // ============================================================
+  // #endregion
+  // ============================================================
+
+  // ============================================================
+  // #region 设置面板交互与聊天滚动
+  // ============================================================
+
   useEffect(() => {
     if (!settingsOpen) return;
 
@@ -397,6 +473,14 @@ export default function Home() {
       behavior: "smooth",
     });
   };
+
+  // ============================================================
+  // #endregion
+  // ============================================================
+
+  // ============================================================
+  // #region 摄像头与直播播放器控制
+  // ============================================================
 
   const stopLive = () => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -541,6 +625,14 @@ export default function Home() {
     }
   };
 
+  // ============================================================
+  // #endregion
+  // ============================================================
+
+  // ============================================================
+  // #region 头像、礼物特效与聊天发送
+  // ============================================================
+
   const handleAvatarUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = "";
@@ -594,6 +686,14 @@ export default function Home() {
     showDanmaku(outgoingMessage);
     setDraft("");
   };
+
+  // ============================================================
+  // #endregion
+  // ============================================================
+
+  // ============================================================
+  // #region 页面结构渲染
+  // ============================================================
 
   return (
     <main className="page-shell">
@@ -1042,4 +1142,8 @@ export default function Home() {
       </footer>
     </main>
   );
+
+  // ============================================================
+  // #endregion
+  // ============================================================
 }
