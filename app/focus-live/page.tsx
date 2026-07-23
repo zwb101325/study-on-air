@@ -107,7 +107,8 @@ const danmakuSpeedOptions = [
 
 const defaultMirrored = true;
 const defaultGrowthInterval = 10;
-const defaultCommentInterval = 3;
+const defaultCommentInterval = 2;
+const defaultDanmakuSpeed = 2;
 
 function CameraGlyph() {
   return (
@@ -152,7 +153,7 @@ export default function Home() {
   const [danmakuDisplayArea, setDanmakuDisplayArea] = useState(50);
   const [danmakuOpacity, setDanmakuOpacity] = useState(80);
   const [danmakuFontSize, setDanmakuFontSize] = useState(100);
-  const [danmakuSpeed, setDanmakuSpeed] = useState(2);
+  const [danmakuSpeed, setDanmakuSpeed] = useState(defaultDanmakuSpeed);
   const [isPictureInPicture, setIsPictureInPicture] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -180,7 +181,7 @@ export default function Home() {
     const trackCount = Math.max(1, Math.min(8, Math.round(danmakuDisplayArea / 12.5)));
     const track = barrageId % trackCount;
     const trackTop = trackCount === 1 ? 12 : 8 + (track / (trackCount - 1)) * 74;
-    const duration = (10 + (barrageId % 4)) / danmakuSpeedOptions[danmakuSpeed].factor;
+    const duration = (12 + (barrageId % 4)) / danmakuSpeedOptions[danmakuSpeed].factor;
     const item: DanmakuItem = {
       ...message,
       barrageId,
@@ -862,7 +863,7 @@ export default function Home() {
                     <div className="danmaku-settings-popover" role="dialog" aria-label="弹幕设置">
                       <div className="control-panel-heading">
                         <strong>弹幕设置</strong>
-                        <button onClick={() => { setDanmakuDisplayArea(50); setDanmakuOpacity(80); setDanmakuFontSize(100); setDanmakuSpeed(2); }}>恢复默认</button>
+                        <button onClick={() => { setDanmakuDisplayArea(50); setDanmakuOpacity(80); setDanmakuFontSize(100); setDanmakuSpeed(defaultDanmakuSpeed); }}>恢复默认</button>
                       </div>
                       <label className="danmaku-setting-row">
                         <span>显示区域</span>
