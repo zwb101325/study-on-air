@@ -124,6 +124,10 @@ function formatDuration(seconds: number) {
   return [hours, minutes, rest].map((part) => String(part).padStart(2, "0")).join(":");
 }
 
+function getRandomizedIntervalMs(seconds: number) {
+  return seconds * 1000 * (0.8 + Math.random() * 0.4);
+}
+
 export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -237,7 +241,7 @@ export default function Home() {
     let timeoutId: number;
 
     const queueNextComment = () => {
-      const delay = commentInterval * 1000 * (0.8 + Math.random() * 0.4);
+      const delay = getRandomizedIntervalMs(commentInterval);
       timeoutId = window.setTimeout(() => {
         const next = liveComments[Math.floor(Math.random() * liveComments.length)];
         const incomingMessage: ChatMessage = {
@@ -261,23 +265,29 @@ export default function Home() {
 
   useEffect(() => {
     if (growthInterval === 0) return;
+    let timeoutId: number;
 
-    const timerId = window.setInterval(() => {
-      const newcomer = liveComments[nextArrivalIndex.current % liveComments.length];
-      nextArrivalIndex.current += 1;
-      const arrivalMessage: ChatMessage = {
-        id: nextMessageId.current++,
-        user: newcomer.user,
-        text: "进入了直播间",
-        joined: true,
-        color: newcomer.color,
-      };
+    const queueNextViewer = () => {
+      const delay = getRandomizedIntervalMs(growthInterval);
+      timeoutId = window.setTimeout(() => {
+        const newcomer = liveComments[nextArrivalIndex.current % liveComments.length];
+        nextArrivalIndex.current += 1;
+        const arrivalMessage: ChatMessage = {
+          id: nextMessageId.current++,
+          user: newcomer.user,
+          text: "进入了直播间",
+          joined: true,
+          color: newcomer.color,
+        };
 
-      setViewerCount((current) => Math.min(999999, current + 1));
-      setMessages((current) => [...current.slice(-49), arrivalMessage]);
-    }, growthInterval * 1000);
+        setViewerCount((current) => Math.min(999999, current + 1));
+        setMessages((current) => [...current.slice(-49), arrivalMessage]);
+        queueNextViewer();
+      }, delay);
+    };
 
-    return () => window.clearInterval(timerId);
+    queueNextViewer();
+    return () => window.clearTimeout(timeoutId);
   }, [growthInterval]);
 
   useEffect(() => {
@@ -644,10 +654,10 @@ export default function Home() {
                       />
                     </label>
                     <label className="speed-field growth-speed-field">
-                      <span><b>直播间涨粉速度</b><strong>{growthInterval === 0 ? "关闭" : `每 ${growthInterval} 秒 +1`}</strong></span>
+                      <span><b>直播间涨粉速度</b><strong>{growthInterval === 0 ? "关闭" : `约每 ${growthInterval} 秒`}</strong></span>
                       <input
                         aria-label="直播间涨粉速度"
-                        aria-valuetext={growthInterval === 0 ? "关闭" : `每 ${growthInterval} 秒增加一人`}
+                        aria-valuetext={growthInterval === 0 ? "关闭" : `约每 ${growthInterval} 秒增加一人`}
                         type="range"
                         min="0"
                         max="20"
