@@ -18,9 +18,6 @@ export type ChatMessage = {
 };
 
 // #endregion
-
-
-
 // ============================================================
 // #region 聊天室用户 ID
 // ============================================================
@@ -404,32 +401,5 @@ export const longFocusComments: string[] = [
   "长时间保持状态，执行力拉满",
   "继续按自己的节奏完成今天的目标",
 ];
-
-// #endregion
-
-
-
-// ============================================================
-// #region 初始消息与自动评论数据
-// ============================================================
-
-function createTimeBasedMessages(date = new Date()): ChatMessage[] {
-  const currentComments = getTimePeriodComments(date);
-  return chatUsers.map((user, index) => ({
-    id: index + 1,
-    user: user.id,
-    text: currentComments[index % currentComments.length],
-    color: user.color,
-    accent: user.accent,
-  }));
-}
-
-export function getLiveComments(date = new Date()) {
-  return createTimeBasedMessages(date).slice(8).map(({ user, text, color }) => ({
-    user,
-    text,
-    color,
-  }));
-}
 
 // #endregion

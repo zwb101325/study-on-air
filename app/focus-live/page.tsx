@@ -9,14 +9,13 @@ import SiteHeader from "../components/SiteHeader";
 import { withBasePath } from "../base-path";
 import {
   chatUsers,
-  getLiveComments,
   type ChatMessage,
 } from "./chat-data";
 import { useSceneCommentSystem } from "./scene-comment-system";
 
-// ============================================================
 // #endregion
-// ============================================================
+
+
 
 // ============================================================
 // #region 类型定义
@@ -59,22 +58,22 @@ type GiftParticleStyle = CSSProperties & {
   "--particle-angle": string;
 };
 
-// ============================================================
 // #endregion
-// ============================================================
+
+
 
 // ============================================================
-// #region 礼物、弹幕选项与默认配置
+// #region 默认配置
 // ============================================================
 
 const gifts: Gift[] = [
   { icon: "🌷", name: "小花花", price: "1 星糖", effect: "bloom", color: "#ff6f9f" },
   { icon: "💌", name: "心动来信", price: "5 星糖", effect: "letter", color: "#ff5f8f" },
   { icon: "🧋", name: "加杯奶茶", price: "10 星糖", effect: "bubble", color: "#d89963" },
-  { icon: "🎠", name: "梦幻木马", price: "66 星糖", effect: "carousel", color: "#bd8cff" },
-  { icon: "🚀", name: "星际旅行", price: "188 星糖", effect: "rocket", color: "#6ca7ff" },
   { icon: "⭐", name: "星光棒", price: "20 星糖", effect: "star", color: "#ffd65c" },
+  { icon: "🎠", name: "梦幻木马", price: "66 星糖", effect: "carousel", color: "#bd8cff" },
   { icon: "🐳", name: "星海鲸语", price: "88 星糖", effect: "whale", color: "#5dc7e8" },
+  { icon: "🚀", name: "星际旅行", price: "188 星糖", effect: "rocket", color: "#6ca7ff" },
   { icon: "👑", name: "闪耀王冠", price: "520 星糖", effect: "crown", color: "#ffc247" },
   { icon: "🎆", name: "流星烟火", price: "999 星糖", effect: "fireworks", color: "#ff71c8" },
   { icon: "🏰", name: "梦幻城堡", price: "1314 星糖", effect: "castle", color: "#9c83ff" },
@@ -94,9 +93,9 @@ const defaultCommentInterval = 2;
 const defaultDanmakuSpeed = 2;
 const spotifyEmbedKinds = new Set(["track", "album", "playlist", "artist", "episode", "show"]);
 
-// ============================================================
 // #endregion
-// ============================================================
+
+
 
 // ============================================================
 // #region 通用工具函数
@@ -109,9 +108,11 @@ function formatDuration(seconds: number) {
   return [hours, minutes, rest].map((part) => String(part).padStart(2, "0")).join(":");
 }
 
+
 function getRandomizedIntervalMs(seconds: number) {
   return seconds * 1000 * (0.8 + Math.random() * 0.4);
 }
+
 
 function getSpotifyEmbedUrl(value: string) {
   const input = value.trim();
@@ -136,13 +137,14 @@ function getSpotifyEmbedUrl(value: string) {
   }
 }
 
+
 function getDeviceLabel(device: MediaDeviceInfo, index: number, fallback: string) {
   return device.label || `${fallback} ${index + 1}`;
 }
 
-// ============================================================
 // #endregion
-// ============================================================
+
+
 
 export default function Home() {
   // ============================================================
@@ -154,6 +156,8 @@ export default function Home() {
   const streamRef = useRef<MediaStream | null>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
   const settingsRef = useRef<HTMLDivElement>(null);
+  const cameraDeviceMenuRef = useRef<HTMLDivElement>(null);
+  const danmakuSettingsMenuRef = useRef<HTMLDivElement>(null);
   const nextMessageId = useRef(20);
   const nextDanmakuId = useRef(1);
   const nextGiftEffectId = useRef(1);
@@ -200,9 +204,8 @@ export default function Home() {
   const [notice, setNotice] = useState("点击下方按钮，开启你的实时画面");
   const [isStarting, setIsStarting] = useState(false);
 
-  // ============================================================
   // #endregion
-  // ============================================================
+
 
   const refreshMediaDevices = useCallback(async () => {
     if (!navigator.mediaDevices?.enumerateDevices) return;
@@ -223,6 +226,8 @@ export default function Home() {
   // ============================================================
 
   const showDanmaku = useCallback((message: ChatMessage) => {
+    if (!isLive) return;
+
     const barrageId = nextDanmakuId.current++;
     const trackCount = Math.max(1, Math.min(8, Math.round(danmakuDisplayArea / 12.5)));
     const track = barrageId % trackCount;
@@ -241,7 +246,7 @@ export default function Home() {
       danmakuTimersRef.current.delete(timerId);
     }, duration * 1000);
     danmakuTimersRef.current.add(timerId);
-  }, [danmakuDisplayArea, danmakuSpeed]);
+  }, [danmakuDisplayArea, danmakuSpeed, isLive]);
 
   useEffect(() => {
     showDanmakuRef.current = showDanmaku;
@@ -261,16 +266,15 @@ export default function Home() {
     showDanmakuRef.current(message);
   }, []);
 
-  const getSceneComment = useSceneCommentSystem({
+  const getNextComment = useSceneCommentSystem({
     isLive,
     elapsed,
     videoRef,
     modelAssetPath: withBasePath("/models/efficientdet_lite0.tflite"),
   });
 
-  // ============================================================
   // #endregion
-  // ============================================================
+
 
   // ============================================================
   // #region 直播计时
@@ -282,9 +286,8 @@ export default function Home() {
     return () => window.clearInterval(timer);
   }, [isLive]);
 
-  // ============================================================
   // #endregion
-  // ============================================================
+
 
   // ============================================================
   // #region 媒体资源生命周期与播放器状态同步
@@ -329,9 +332,8 @@ export default function Home() {
     };
   }, []);
 
-  // ============================================================
   // #endregion
-  // ============================================================
+
 
   // ============================================================
   // #region 自动评论与直播间观众增长
@@ -344,31 +346,15 @@ export default function Home() {
     const queueNextComment = () => {
       const delay = getRandomizedIntervalMs(commentInterval);
       timeoutId = window.setTimeout(() => {
-        const sceneComment = getSceneComment();
-        if (sceneComment) {
-          emitTriggeredComment(sceneComment.text);
-        } else {
-          const liveComments = getLiveComments();
-          const next = liveComments[Math.floor(Math.random() * liveComments.length)];
-          const incomingMessage: ChatMessage = {
-            id: nextMessageId.current++,
-            user: next.user,
-            text: next.text,
-            color: next.color,
-          };
-          setMessages((current) => [
-            ...current.slice(-49),
-            incomingMessage,
-          ]);
-          showDanmaku(incomingMessage);
-        }
+        const nextComment = getNextComment();
+        emitTriggeredComment(nextComment.text);
         queueNextComment();
       }, delay);
     };
 
     queueNextComment();
     return () => window.clearTimeout(timeoutId);
-  }, [commentInterval, emitTriggeredComment, getSceneComment, showDanmaku]);
+  }, [commentInterval, emitTriggeredComment, getNextComment]);
 
   useEffect(() => {
     if (growthInterval === 0) return;
@@ -377,12 +363,11 @@ export default function Home() {
     const queueNextViewer = () => {
       const delay = getRandomizedIntervalMs(growthInterval);
       timeoutId = window.setTimeout(() => {
-        const liveComments = getLiveComments();
-        const newcomer = liveComments[nextArrivalIndex.current % liveComments.length];
+        const newcomer = chatUsers[nextArrivalIndex.current % chatUsers.length];
         nextArrivalIndex.current += 1;
         const arrivalMessage: ChatMessage = {
           id: nextMessageId.current++,
-          user: newcomer.user,
+          user: newcomer.id,
           text: "进入了直播间",
           joined: true,
           color: newcomer.color,
@@ -398,9 +383,8 @@ export default function Home() {
     return () => window.clearTimeout(timeoutId);
   }, [growthInterval]);
 
-  // ============================================================
   // #endregion
-  // ============================================================
+
 
   // ============================================================
   // #region 设置面板交互与聊天滚动
@@ -425,6 +409,24 @@ export default function Home() {
   }, [settingsOpen]);
 
   useEffect(() => {
+    if (!cameraDeviceOpen && !danmakuSettingsOpen) return;
+
+    const closeSubmenusOnOutsideClick = (event: PointerEvent) => {
+      const target = event.target as Node;
+
+      if (cameraDeviceOpen && !cameraDeviceMenuRef.current?.contains(target)) {
+        setCameraDeviceOpen(false);
+      }
+      if (danmakuSettingsOpen && !danmakuSettingsMenuRef.current?.contains(target)) {
+        setDanmakuSettingsOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", closeSubmenusOnOutsideClick);
+    return () => document.removeEventListener("pointerdown", closeSubmenusOnOutsideClick);
+  }, [cameraDeviceOpen, danmakuSettingsOpen]);
+
+  useEffect(() => {
     if (!autoFollow || !messagesRef.current) return;
     messagesRef.current.scrollTo({
       top: messagesRef.current.scrollHeight,
@@ -447,9 +449,8 @@ export default function Home() {
     });
   };
 
-  // ============================================================
   // #endregion
-  // ============================================================
+
 
   // ============================================================
   // #region 摄像头与直播播放器控制
@@ -461,9 +462,13 @@ export default function Home() {
     if (videoRef.current) videoRef.current.srcObject = null;
     setIsLive(false);
     setIsPlaying(false);
+    setDanmakuItems([]);
+    setCameraDeviceOpen(false);
+    setDanmakuSettingsOpen(false);
     setElapsed(0);
     setNotice("直播已暂停，随时可以再次开启");
   };
+
 
   const connectCamera = async (resetElapsed: boolean) => {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -507,6 +512,9 @@ export default function Home() {
       );
       setIsLive(false);
       setIsPlaying(false);
+      setDanmakuItems([]);
+      setCameraDeviceOpen(false);
+      setDanmakuSettingsOpen(false);
     } finally {
       setIsStarting(false);
     }
@@ -558,7 +566,8 @@ export default function Home() {
     }
   };
 
-  const togglePlayback = async () => {
+
+  const togglePlayPause = async () => {
     const video = videoRef.current;
     if (!video || !isLive) return;
     if (video.paused) {
@@ -576,6 +585,7 @@ export default function Home() {
     }
   };
 
+
   const togglePictureInPicture = async () => {
     const video = videoRef.current;
     if (!video || !isLive) return;
@@ -591,6 +601,7 @@ export default function Home() {
     }
   };
 
+
   const enterFullscreen = async () => {
     if (!stageRef.current) return;
     try {
@@ -601,9 +612,8 @@ export default function Home() {
     }
   };
 
-  // ============================================================
   // #endregion
-  // ============================================================
+
 
   // ============================================================
   // #region 头像、礼物特效与聊天发送
@@ -632,6 +642,7 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
+
   const triggerGiftEffect = (gift: Gift) => {
     const id = nextGiftEffectId.current++;
     setGiftEffects((current) => [...current.slice(-2), { id, gift }]);
@@ -642,6 +653,7 @@ export default function Home() {
     }, 3000);
     giftEffectTimersRef.current.add(timerId);
   };
+
 
   const loadSpotifyPlayer = (event: FormEvent) => {
     event.preventDefault();
@@ -654,6 +666,7 @@ export default function Home() {
     setSpotifyEmbedUrl(embedUrl);
     setSpotifyError("");
   };
+
 
   const sendMessage = (event: FormEvent) => {
     event.preventDefault();
@@ -675,23 +688,47 @@ export default function Home() {
     setDraft("");
   };
 
-  // ============================================================
   // #endregion
-  // ============================================================
+
 
   // ============================================================
   // #region 页面结构渲染
   // ============================================================
 
+  const playerControlText = {
+    playPause: isPlaying ? "暂停" : "播放",
+    refresh: "刷新",
+    cameraDevice: "选择摄像头",
+    duration: `直播持续时间`,
+    mirror: mirrored ? "退出镜像模式" : "镜像模式",
+    pictureInPicture: isPictureInPicture ? "退出小窗模式" : "小窗模式",
+    danmaku: danmakuEnabled ? "关闭弹幕" : "开启弹幕",
+    danmakuSettings: "弹幕设置",
+    fullscreen: isFullscreen ? "退出全屏模式" : "全屏模式",
+    endLive: "结束直播",
+  };
+
   return (
     <main className="page-shell">
+      {/* ============================================================ */}
+      {/* 环境背景与站点导航 */}
+      {/* ============================================================ */}
+
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
 
       <SiteHeader active="live" />
 
+      {/* ============================================================ */}
+      {/* 直播间主体布局 */}
+      {/* ============================================================ */}
+
       <section className="room-layout">
         <div className="room-main">
+          {/* ======================================================== */}
+          {/* 直播间标题与设置 */}
+          {/* ======================================================== */}
+
           <div className="room-header">
             <div className="host-avatar">
               {avatarUrl ? <img src={avatarUrl} alt="主播头像" /> : hostId.trim().slice(0, 1) || "晚"}
@@ -707,12 +744,7 @@ export default function Home() {
               <p>主播：{hostId || "未设置"} <span>·</span> {category}</p>
             </div>
             <div className="header-pills">
-              <button
-                className={isFollowing ? "follow-button following" : "follow-button"}
-                onClick={() => setIsFollowing((value) => !value)}
-                aria-pressed={isFollowing}
-                title={isFollowing ? "点击取消关注" : "点击关注主播"}
-              >
+              <button className={isFollowing ? "follow-button following" : "follow-button"} onClick={() => setIsFollowing((value) => !value)} aria-pressed={isFollowing} title={isFollowing ? "点击取消关注" : "点击关注主播"} >
                 {isFollowing ? (
                   "✓ 已关注"
                 ) : (
@@ -723,12 +755,7 @@ export default function Home() {
                 )}
               </button>
               <div className="settings-wrap" ref={settingsRef}>
-                <button
-                  className={settingsOpen ? "settings-button active" : "settings-button"}
-                  onClick={() => setSettingsOpen((value) => !value)}
-                  aria-expanded={settingsOpen}
-                aria-haspopup="dialog"
-              >
+                <button className={settingsOpen ? "settings-button active" : "settings-button"} onClick={() => setSettingsOpen((value) => !value)} aria-expanded={settingsOpen} aria-haspopup="dialog" >
                   <img className="settings-icon" src={withBasePath("/icons/more.svg")} alt="" aria-hidden="true" />
                   <span className="settings-label">更多设置</span>
                 </button>
@@ -736,18 +763,7 @@ export default function Home() {
                   <div className="settings-panel" role="dialog" aria-label="直播间更多设置">
                     <div className="settings-heading">
                       <div><strong>更多设置</strong><small>调整直播间演示数据</small></div>
-                      <button
-                        onClick={() => {
-                          setRoomTitle("晚风里，和你聊聊天");
-                          setHostId("晚风同学");
-                          setAvatarUrl(null);
-                          setAvatarHint("JPG、PNG、WebP，最大 5MB");
-                          setCategory("日常 / 陪伴");
-                          setViewerCount(1284);
-                          setCommentInterval(defaultCommentInterval);
-                          setGrowthInterval(defaultGrowthInterval);
-                        }}
-                      >
+                      <button onClick={() => { setRoomTitle("晚风里，和你聊聊天"); setHostId("晚风同学"); setAvatarUrl(null); setAvatarHint("JPG、PNG、WebP，最大 5MB"); setCategory("日常 / 陪伴"); setViewerCount(1284); setCommentInterval(defaultCommentInterval); setGrowthInterval(defaultGrowthInterval); }} >
                         恢复默认
                       </button>
                     </div>
@@ -767,23 +783,11 @@ export default function Home() {
                     </div>
                     <label className="text-setting-field">
                       <span>直播间标题 <small>{roomTitle.length}/32</small></span>
-                      <input
-                        type="text"
-                        maxLength={32}
-                        value={roomTitle}
-                        onChange={(event) => setRoomTitle(event.target.value)}
-                        placeholder="输入直播间标题"
-                      />
+                      <input type="text" maxLength={32} value={roomTitle} onChange={(event) => setRoomTitle(event.target.value)} placeholder="输入直播间标题" />
                     </label>
                     <label className="text-setting-field">
                       <span>主播 ID <small>{hostId.length}/20</small></span>
-                      <input
-                        type="text"
-                        maxLength={20}
-                        value={hostId}
-                        onChange={(event) => setHostId(event.target.value)}
-                        placeholder="输入主播 ID"
-                      />
+                      <input type="text" maxLength={20} value={hostId} onChange={(event) => setHostId(event.target.value)} placeholder="输入主播 ID" />
                     </label>
                     <label className="text-setting-field">
                       <span>直播分区</span>
@@ -799,43 +803,16 @@ export default function Home() {
                     <div className="settings-section-title data-title">互动数据</div>
                     <label className="setting-field">
                       <span><b>在线人数</b><small>立即更新右侧显示</small></span>
-                      <input
-                        type="number"
-                        min="0"
-                        max="999999"
-                        value={viewerCount}
-                        onChange={(event) => {
-                          const next = Number(event.target.value);
-                          setViewerCount(Number.isFinite(next) ? Math.min(999999, Math.max(0, next)) : 0);
-                        }}
-                      />
+                      <input type="number" min="0" max="999999" value={viewerCount} onChange={(event) => { const next = Number(event.target.value); setViewerCount(Number.isFinite(next) ? Math.min(999999, Math.max(0, next)) : 0); }} />
                     </label>
                     <label className="speed-field growth-speed-field">
                       <span><b>直播间涨粉速度</b><strong>{growthInterval === 0 ? "关闭" : `约每 ${growthInterval} 秒`}</strong></span>
-                      <input
-                        aria-label="直播间涨粉速度"
-                        aria-valuetext={growthInterval === 0 ? "关闭" : `约每 ${growthInterval} 秒增加一人`}
-                        type="range"
-                        min="0"
-                        max="20"
-                        step="1"
-                        value={growthInterval}
-                        onChange={(event) => setGrowthInterval(Number(event.target.value))}
-                      />
+                      <input aria-label="直播间涨粉速度" aria-valuetext={growthInterval === 0 ? "关闭" : `约每 ${growthInterval} 秒增加一人`} type="range" min="0" max="20" step="1" value={growthInterval} onChange={(event) => setGrowthInterval(Number(event.target.value))} />
                       <span className="speed-scale"><small>0 秒（关闭）</small><small>20 秒</small></span>
                     </label>
                     <label className="speed-field">
                       <span><b>评论出现速度</b><strong>{commentInterval === 0 ? "关闭" : `约每 ${commentInterval} 秒`}</strong></span>
-                      <input
-                        aria-label="评论出现速度"
-                        aria-valuetext={commentInterval === 0 ? "关闭" : `约每 ${commentInterval} 秒一条`}
-                        type="range"
-                        min="0"
-                        max="20"
-                        step="1"
-                        value={commentInterval}
-                        onChange={(event) => setCommentInterval(Number(event.target.value))}
-                      />
+                      <input aria-label="评论出现速度" aria-valuetext={commentInterval === 0 ? "关闭" : `约每 ${commentInterval} 秒一条`} type="range" min="0" max="20" step="1" value={commentInterval} onChange={(event) => setCommentInterval(Number(event.target.value))} />
                       <span className="speed-scale"><small>0 秒（关闭）</small><small>20 秒</small></span>
                     </label>
                   </div>
@@ -844,54 +821,32 @@ export default function Home() {
             </div>
           </div>
 
+          {/* ======================================================== */}
+          {/* 直播画面与播放器控制 */}
+          {/* ======================================================== */}
+
           <div className="video-stage" ref={stageRef}>
-            <video
-              ref={videoRef}
-              className={mirrored ? "camera-feed mirrored" : "camera-feed"}
-              autoPlay
-              muted
-              playsInline
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-              aria-label="摄像头实时画面"
-            />
+            {/* 摄像头画面 */}
+            <video ref={videoRef} className={mirrored ? "camera-feed mirrored" : "camera-feed"} autoPlay muted playsInline onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} aria-label="摄像头实时画面" />
 
-            <div
-              className={danmakuEnabled ? "danmaku-layer" : "danmaku-layer hidden"}
-              style={{
-                height: `${danmakuDisplayArea}%`,
-                "--danmaku-opacity": danmakuOpacity / 100,
-                "--danmaku-font-size": `${13 * (danmakuFontSize / 100)}px`,
-              } as DanmakuLayerStyle}
-              aria-hidden="true"
-            >
-              {danmakuItems.map((item) => (
-                <div
-                  className="danmaku-item"
-                  key={item.barrageId}
-                  style={{
-                    "--track-top": `${item.trackTop}%`,
-                    "--duration": `${item.duration}s`,
-                  } as DanmakuStyle}
-                >
-                  <span>{item.text}</span>
-                </div>
-              ))}
-            </div>
+            {/* 弹幕层 */}
+            {isLive && (
+              <div className={danmakuEnabled ? "danmaku-layer" : "danmaku-layer hidden"} style={{ height: `${danmakuDisplayArea}%`, "--danmaku-opacity": danmakuOpacity / 100, "--danmaku-font-size": `${19.2 * (danmakuFontSize / 100)}px`, } as DanmakuLayerStyle} aria-hidden="true" >
+                {danmakuItems.map((item) => (
+                  <div className="danmaku-item" key={item.barrageId} style={{ "--track-top": `${item.trackTop}%`, "--duration": `${item.duration}s`, } as DanmakuStyle} >
+                    <span>{item.text}</span>
+                  </div>
+                ))}
+              </div>
+            )}
 
+            {/* 礼物特效层 */}
             <div className="gift-effects-layer" aria-live="polite" aria-atomic="false">
               {giftEffects.map(({ id, gift }) => (
-                <div
-                  className={`gift-effect effect-${gift.effect}`}
-                  key={id}
-                  style={{ "--effect-color": gift.color } as GiftEffectStyle}
-                >
+                <div className={`gift-effect effect-${gift.effect}`} key={id} style={{ "--effect-color": gift.color } as GiftEffectStyle} >
                   <div className="gift-particles" aria-hidden="true">
                     {Array.from({ length: 12 }, (_, index) => (
-                      <span
-                        key={index}
-                        style={{ "--particle-angle": `${index * 30}deg` } as GiftParticleStyle}
-                      >
+                      <span key={index} style={{ "--particle-angle": `${index * 30}deg` } as GiftParticleStyle} >
                         ✦
                       </span>
                     ))}
@@ -903,6 +858,7 @@ export default function Home() {
               ))}
             </div>
 
+            {/* 未开播提示 */}
             {!isLive && (
               <div className="empty-stage">
                 <div className="camera-orbit">
@@ -918,31 +874,24 @@ export default function Home() {
               </div>
             )}
 
-            {isLive && (
-              <div className="live-status"><span /> LIVE</div>
-            )}
 
-            <div className={isLive ? "video-controls visible" : "video-controls"}>
+            {/* 直播状态 */}
+            {isLive && (<div className="live-status"><span /> LIVE</div>)}
+
+            {/* 底部播放器控制栏 */}
+            {isLive && (
+            <div className="video-controls visible">
               <div className="control-left">
-                <button className="control-button" onClick={togglePlayback} disabled={!isLive} aria-label={isPlaying ? "暂停播放" : "继续播放"} data-tooltip={isPlaying ? "暂停" : "播放"}>
+                <button className="control-button" onClick={togglePlayPause} disabled={!isLive} aria-label={playerControlText.playPause} data-tooltip={playerControlText.playPause}>
                   <img className="control-icon play-icon" src={withBasePath(isPlaying ? "/icons/pause.svg" : "/icons/play.svg")} alt="" aria-hidden="true" />
                 </button>
-                <button className="control-button" onClick={refreshLive} disabled={!isLive || isStarting} aria-label="刷新直播画面" data-tooltip="刷新">
+
+                <button className="control-button" onClick={refreshLive} disabled={!isLive || isStarting} aria-label={playerControlText.refresh} data-tooltip={playerControlText.refresh}>
                   <img className={isStarting ? "control-icon refresh-icon spinning" : "control-icon refresh-icon"} src={withBasePath("/icons/refresh.svg")} alt="" aria-hidden="true" />
                 </button>
-                <div className="control-popover-wrap device-control-wrap">
-                  <button
-                    className={cameraDeviceOpen ? "control-button active" : "control-button"}
-                    onClick={() => {
-                      setCameraDeviceOpen((value) => !value);
-                      setDanmakuSettingsOpen(false);
-                      void refreshMediaDevices();
-                    }}
-                    disabled={isStarting || isSwitchingCamera}
-                    aria-label="选择摄像头设备"
-                    aria-expanded={cameraDeviceOpen}
-                    data-tooltip="选择摄像头"
-                  >
+
+                <div className="control-popover-wrap device-control-wrap" ref={cameraDeviceMenuRef}>
+                  <button className={cameraDeviceOpen ? "control-button active" : "control-button"} onClick={() => { setCameraDeviceOpen((value) => !value); setDanmakuSettingsOpen(false); void refreshMediaDevices(); }} disabled={isStarting || isSwitchingCamera} aria-label={playerControlText.cameraDevice} aria-expanded={cameraDeviceOpen} data-tooltip={playerControlText.cameraDevice} >
                     <img className="control-icon device-control-icon" src={withBasePath("/icons/camera-on.svg")} alt="" aria-hidden="true" />
                   </button>
                   {cameraDeviceOpen && (
@@ -956,15 +905,7 @@ export default function Home() {
                           const label = getDeviceLabel(device, index, "摄像头");
                           const active = device.deviceId === selectedCameraId;
                           return (
-                            <button
-                              className={active ? "device-option active" : "device-option"}
-                              type="button"
-                              key={`camera-${device.deviceId || index}`}
-                              onClick={() => void selectCameraDevice(device.deviceId, label)}
-                              disabled={!device.deviceId || isSwitchingCamera}
-                              aria-pressed={active}
-                            >
-                              <span className="device-type-icon camera" aria-hidden="true" />
+                            <button className={active ? "device-option active" : "device-option"} type="button" key={`camera-${device.deviceId || index}`} onClick={() => void selectCameraDevice(device.deviceId, label)} disabled={!device.deviceId || isSwitchingCamera} aria-pressed={active} >
                               <span><strong>{label}</strong><small>{active ? "当前摄像头" : "点击切换"}</small></span>
                               {active && <b aria-hidden="true">✓</b>}
                             </button>
@@ -976,57 +917,31 @@ export default function Home() {
                     </div>
                   )}
                 </div>
-                <time
-                  className="live-duration"
-                  dateTime={`PT${elapsed}S`}
-                  data-tooltip="直播持续时间"
-                  aria-label={`直播持续时间 ${formatDuration(elapsed)}`}
-                  tabIndex={0}
-                >
+
+                <time className="live-duration" dateTime={`PT${elapsed}S`} data-tooltip={playerControlText.duration} aria-label={playerControlText.duration} tabIndex={0}>
                   {formatDuration(elapsed)}
                 </time>
+
               </div>
+
+
+              {/* 底部播放器控制栏右侧 */}
               <div className="control-right">
-                <button
-                  className={mirrored ? "control-button active" : "control-button"}
-                  onClick={() => setMirrored((value) => !value)}
-                  disabled={!isLive}
-                  aria-label={mirrored ? "关闭镜像模式" : "开启镜像模式"}
-                  aria-pressed={mirrored}
-                  data-tooltip={mirrored ? "关闭镜像" : "开启镜像"}
-                >
+                <button className={mirrored ? "control-button active" : "control-button"} onClick={() => setMirrored((value) => !value)} disabled={!isLive} aria-label={playerControlText.mirror} data-tooltip={playerControlText.mirror}>
                   <img className="control-icon" src={withBasePath(mirrored ? "/icons/mirror-exit.svg" : "/icons/mirror.svg")} alt="" aria-hidden="true" />
                 </button>
-                <button
-                  className={isPictureInPicture ? "control-button active" : "control-button"}
-                  onClick={togglePictureInPicture}
-                  disabled={!isLive}
-                  aria-label={isPictureInPicture ? "退出小窗模式" : "开启小窗模式"}
-                  aria-pressed={isPictureInPicture}
-                  data-tooltip={isPictureInPicture ? "退出小窗" : "小窗模式"}
-                >
+
+                <button className={isPictureInPicture ? "control-button active" : "control-button"} onClick={togglePictureInPicture} disabled={!isLive} aria-label={playerControlText.pictureInPicture} data-tooltip={playerControlText.pictureInPicture}>
                   <img className="control-icon" src={withBasePath(isPictureInPicture ? "/icons/pip-exit.svg" : "/icons/pip.svg")} alt="" aria-hidden="true" />
                 </button>
-                <button
-                  className={danmakuEnabled ? "control-button active danmaku-toggle" : "control-button danmaku-toggle"}
-                  onClick={() => setDanmakuEnabled((value) => !value)}
-                  aria-label={danmakuEnabled ? "关闭弹幕" : "开启弹幕"}
-                  aria-pressed={danmakuEnabled}
-                  data-tooltip={danmakuEnabled ? "关闭弹幕" : "开启弹幕"}
-                >
+
+                <button className={danmakuEnabled ? "control-button active danmaku-toggle" : "control-button danmaku-toggle"} onClick={() => setDanmakuEnabled((value) => !value)} aria-label={playerControlText.danmaku} data-tooltip={playerControlText.danmaku}>
                   <img className="control-icon" src={withBasePath(danmakuEnabled ? "/icons/danmaku.svg" : "/icons/danmaku-on.svg")} alt="" aria-hidden="true" />
                 </button>
-                <div className="control-popover-wrap danmaku-settings-wrap">
-                  <button
-                    className={danmakuSettingsOpen ? "control-button active" : "control-button"}
-                    onClick={() => {
-                      setDanmakuSettingsOpen((value) => !value);
-                      setCameraDeviceOpen(false);
-                    }}
-                    aria-label="弹幕设置"
-                    aria-expanded={danmakuSettingsOpen}
-                    data-tooltip="弹幕设置"
-                  >
+
+
+                <div className="control-popover-wrap danmaku-settings-wrap" ref={danmakuSettingsMenuRef}>
+                  <button className={danmakuSettingsOpen ? "control-button active" : "control-button"} onClick={() => { setDanmakuSettingsOpen((value) => !value); setCameraDeviceOpen(false); }} aria-label={playerControlText.danmakuSettings} aria-expanded={danmakuSettingsOpen} data-tooltip={playerControlText.danmakuSettings} >
                     <img className="control-icon" src={withBasePath("/icons/danmaku-settings.svg")} alt="" aria-hidden="true" />
                   </button>
                   {danmakuSettingsOpen && (
@@ -1058,47 +973,27 @@ export default function Home() {
                     </div>
                   )}
                 </div>
-                <button
-                  className={isFullscreen ? "control-button active tooltip-align-right" : "control-button tooltip-align-right"}
-                  onClick={enterFullscreen}
-                  aria-label={isFullscreen ? "退出全屏" : "进入全屏"}
-                  aria-pressed={isFullscreen}
-                  data-tooltip={isFullscreen ? "退出全屏" : "全屏模式"}
-                >
+
+                <button className={isFullscreen ? "control-button active tooltip-align-right" : "control-button tooltip-align-right"} onClick={enterFullscreen} aria-label={playerControlText.fullscreen} aria-pressed={isFullscreen} data-tooltip={playerControlText.fullscreen}>
                   <img className="control-icon" src={withBasePath(isFullscreen ? "/icons/fullscreen-exit.svg" : "/icons/fullscreen.svg")} alt="" aria-hidden="true" />
                 </button>
-                {isLive && <button className="end-button compact" onClick={stopLive} title="结束直播">结束</button>}
+
+                <button className="end-button compact" onClick={stopLive} aria-label={playerControlText.endLive} data-tooltip={playerControlText.endLive} title={playerControlText.endLive}>结束</button>
               </div>
             </div>
+            )}
           </div>
 
+          {/* ======================================================== */}
+          {/* 礼物与 Spotify 音乐区 */}
+          {/* ======================================================== */}
+
           <div className={dockView === "spotify" ? "gift-dock spotify-mode" : "gift-dock"}>
-            <div className="dock-intro">
-              <span className={dockView === "spotify" ? "dock-icon spotify" : "dock-icon"}>
-                {dockView === "spotify" ? "♫" : "✦"}
-              </span>
-              <div>
-                <strong>{dockView === "spotify" ? "Spotify 点歌台" : "为喜欢发电"}</strong>
-                <small>{dockView === "spotify" ? "粘贴链接开始播放" : "选择一份心意"}</small>
-              </div>
-            </div>
             <div className="dock-tabs" role="tablist" aria-label="礼品区功能">
-              <button
-                className={dockView === "gifts" ? "dock-tab active" : "dock-tab"}
-                type="button"
-                role="tab"
-                aria-selected={dockView === "gifts"}
-                onClick={() => setDockView("gifts")}
-              >
+              <button className={dockView === "gifts" ? "dock-tab active" : "dock-tab"} type="button" role="tab" aria-selected={dockView === "gifts"} onClick={() => setDockView("gifts")} >
                 <span aria-hidden="true">🎁</span>礼物
               </button>
-              <button
-                className={dockView === "spotify" ? "dock-tab spotify active" : "dock-tab spotify"}
-                type="button"
-                role="tab"
-                aria-selected={dockView === "spotify"}
-                onClick={() => setDockView("spotify")}
-              >
+              <button className={dockView === "spotify" ? "dock-tab spotify active" : "dock-tab spotify"} type="button" role="tab" aria-selected={dockView === "spotify"} onClick={() => setDockView("spotify")} >
                 <span aria-hidden="true">♫</span>音乐
               </button>
             </div>
@@ -1106,13 +1001,7 @@ export default function Home() {
               <>
                 <div className="gift-list" role="tabpanel">
                   {gifts.map((gift) => (
-                    <button
-                      className="gift-item"
-                      key={gift.name}
-                      title={`赠送${gift.name}`}
-                      aria-label={`赠送${gift.name}，${gift.price}`}
-                      onClick={() => triggerGiftEffect(gift)}
-                    >
+                    <button className="gift-item" key={gift.name} title={`赠送${gift.name}`} aria-label={`赠送${gift.name}，${gift.price}`} onClick={() => triggerGiftEffect(gift)} >
                       <span>{gift.icon}</span><strong>{gift.name}</strong><small>{gift.price}</small>
                     </button>
                   ))}
@@ -1122,29 +1011,12 @@ export default function Home() {
             ) : (
               <div className="spotify-panel" role="tabpanel">
                 <form className="spotify-form" onSubmit={loadSpotifyPlayer}>
-                  <input
-                    type="url"
-                    value={spotifyInput}
-                    onChange={(event) => {
-                      setSpotifyInput(event.target.value);
-                      if (spotifyError) setSpotifyError("");
-                    }}
-                    placeholder="粘贴 open.spotify.com 链接"
-                    aria-label="Spotify 链接"
-                    spellCheck={false}
-                  />
+                  <input type="url" value={spotifyInput} onChange={(event) => { setSpotifyInput(event.target.value); if (spotifyError) setSpotifyError(""); }} placeholder="粘贴 open.spotify.com 链接" aria-label="Spotify 链接" spellCheck={false} />
                   <button type="submit" disabled={!spotifyInput.trim()}>载入</button>
                   {spotifyError && <span className="spotify-error" role="alert">{spotifyError}</span>}
                 </form>
                 {spotifyEmbedUrl ? (
-                  <iframe
-                    className="spotify-player"
-                    src={spotifyEmbedUrl}
-                    title="Spotify 音乐播放器"
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"
-                    allowFullScreen
-                  />
+                  <iframe className="spotify-player" src={spotifyEmbedUrl} title="Spotify 音乐播放器" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" allowFullScreen />
                 ) : (
                   <div className="spotify-placeholder">
                     <span aria-hidden="true">♫</span>
@@ -1156,6 +1028,10 @@ export default function Home() {
           </div>
         </div>
 
+        {/* ========================================================== */}
+        {/* 聊天室侧栏 */}
+        {/* ========================================================== */}
+
         <aside className="chat-panel">
           <div className="chat-tabs">
             <button className="active">聊天室</button>
@@ -1166,13 +1042,7 @@ export default function Home() {
             <p><strong>直播间公告</strong>友好交流，快乐相遇。欢迎来到晚风的直播间！</p>
           </div>
           <div className="chat-stream">
-            <div
-              className="messages"
-              ref={messagesRef}
-              onScroll={handleMessagesScroll}
-              aria-live="polite"
-              aria-relevant="additions"
-            >
+            <div className="messages" ref={messagesRef} onScroll={handleMessagesScroll} aria-live="polite" aria-relevant="additions" >
               {showWelcome && <div className="welcome-line"><span>✦</span> 你进入了直播间</div>}
               {messages.map((message) => (
                 <p className={`${message.accent ? "message accent" : "message"}${message.joined ? " joined" : ""}`} key={message.id}>
@@ -1198,13 +1068,15 @@ export default function Home() {
         </aside>
       </section>
 
+      {/* ============================================================ */}
+      {/* 页面页脚 */}
+      {/* ============================================================ */}
+
       <footer className="footer-note">
         <span>© 2026 晚风 LIVE</span><span>本地实时预览 · 画面不会上传</span>
       </footer>
     </main>
   );
 
-  // ============================================================
   // #endregion
-  // ============================================================
 }
